@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+  <title>Data visualisation</title>
+
+  <meta name="author" content="Didier" />
+      
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" />
+    <link rel="stylesheet" href="./lib/bootstrap.4.3.1.min.css" />
+    <link rel="stylesheet" href="./lib/main.css" />
+  </head>
+  <body>
+
+    
+
+    <nav>
+      
+    </nav>
+
+
+    <div class="container">
+    </div>
+
+
+    <footer>
+    </footer>
+
+    <script src="./lib/jquery-3.3.1.min.js"></script>
+    <script src="./lib/bootstrap.4.3.1.min.js"></script>
+    <script src="./lib/d3.v5.min.js"></script>
+    <script src="./lib/cookies.js"></script>
+    <script type="text/javascript">
+      "use strict";
+
+      let allCommunes = []
+      let communes = []
+      let file = "./communes_VD_clean.json";
+      let width = 800
+      let height = 600
+      let margin = ({top: 20, right: 30, bottom: 30, left: 40})
+      let svg,g,x,y;
+      let timeRange = [1100,2050]
+
+      init(".container")
+      main(file)
+
+      /**
+      */
+      function init(cssSelector){
+        let container = d3.select(cssSelector)
+        container.append("h3")//.html("Communes' Population through the ages")
+        svg = container.append("div").attr("id","commune-pop-chart")
+            .classed("row",true)
+          .append("svg")
+            .attr("width",width)
+            .attr("height",height)
+        g = svg.append("g").attr("id","main-chart")
+
+
+      }
+
+      /**
+      */
+      async function main(communesFile){
+
+        allCommunes = await fetch(communesFile)
+        allCommunes = await allCommunes.json()
+        
+        // ensure year&pop
+        allCommunes.forEach(c => {
+          c.hab_year.forEach(hy=>{
+            hy.year = +hy.year
+            hy.pop = +hy.pop
+          })
+          // sort hab_year
+          c.hab_year.sort((a,b)=>a.year-b.year)
+          // get years of commune
+          c.years = c.hab_year.map(hy=>hy.year)
+          // add method to get pop from given year
+          c.pop = y => {
+            let pop = c.hab_year.filter(hy=>hy.year==y)
+            return pop.length>0? pop[0].pop : null
+          }
+        });
+        
+        communes = allCommunes
+        updateGraph(allCommunes)
+
+        let year = 1600
+        communes.filter(c=> c.years.filter(y=>y<year).length>0).map(c=>c.name)
+      }
+
+      /**
+      */
+      function updateGraph(communes){
+        // only keep communes that have a value in 1850
+        let hasPop1850 = c => c.years.filter(y=>y==1850).length>0
+        communes = communes.filter(hasPop1850)
+        //communes.forEach(c=>c.pop1850 = )
+
+        let timeMin = d3.min(communes.map(c=>d3.min(c.hab_year.map(hy=>hy.year))))
+        let timeMax = d3.max(communes.map(c=>d3.max(c.hab_year.map(hy=>hy.year))))
+        //let popMin = d3.min(communes.map(c=>d3.min(c.hab_year.map(hy=>hy.pop))))
+        let popMax1850 = d3.max(communes.map(c=>c.pop(1850)))
+
+        let colorScale = d3.scaleSequential(d3.interpolateYlOrRd).domain([0,popMax1850])
+
+        x = d3.scaleLinear()
+            .domain([timeMin,timeMax]).nice()
+            .range([margin.left, width - margin.right])
+
+        y = d3.scaleLinear()
+            .domain([0,10]).nice()
+            .range([height - margin.bottom, margin.top])
+        
+        let xAxis = g => g
+          .attr("transform", `translate(0,${height - margin.bottom})`)
+          .call(d3.axisBottom(x).ticks(width / 80).tickSizeOuter(0))
+
+        let yAxis = g => g
+          .attr("transform", `translate(${margin.left},0)`)
+          .call(d3.axisLeft(y))
+
+        svg.append("g")
+            .call(xAxis);
+
+        svg.append("g")
+            .call(yAxis);
+
+        console.log("communes.length = ",communes.length)
+        communes.forEach(c=>{
+
+          let pop1850 = c.hab_year.filter(hy=>hy.year==1850)[0].pop
+
+          console.log("drawc")
+          let line = d3.line()
+            .x(hy => x(hy.year))
+            .y(hy => y(hy.pop/c.pop(1850)))
+
+          svg.append("path")
+              .datum(c.hab_year)
+              .attr("fill", "none")
+              .attr("stroke", colorScale(c.pop(1850)))
+              .attr("stroke-width", 0.5)
+              .attr("stroke-linejoin", "round")
+              .attr("stroke-linecap", "round")
+              .attr("d", line);
+        
+
+        })
+        console.log("communes2 = ",communes)
+      }
+
+    </script>
+    
+  
+
+
+
+  </body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+  <title>Data validation</title>
+
+  <meta name="author" content="Didier" />
+      
+  </head>
+  <body>
+
+    <script type="text/javascript">
+      "use strict";
+      
+      /* This script's aims are to improve the data-cleaning done on VD communes on points such as:
+       * - complete dual foyer-habitant values
+       * - add notes to some commune
+       * ...as well as integrate it together with all CH communes
+       * ...and output them in a file ready for proper validation of the non-VD communes.
+       */
+
+      let fileVD = "./communes_VD_clean.json";
+      let fileCH = "./communes_CH.json";
+
+      let additionalDataVD = ["Lausanne (Gemeinde)","Ballaigues", "Belmont-sur-Yverdon", "Borex", "Château-d'Œx", "Ependes (VD)", "Lignerolle", "Lutry", "Premier", "Pully", "Suchy", "Ursins"]
+      let noData = ["Bourg-en-Lavaux", "Goumoëns (Gemeinde)", "Jorat-Menthue", "Jorat-Mézières", "Lussery-Villars", "Montanaire", "Montilliez", "Oron (Gemeinde)", "Romainmôtier-Envy", "Tévenon", "Valbroye", "Vully-les-Lacs"]
+      let notesVD = {
+        "Lausanne (Gemeinde)": "data in html tabelle",
+        "Blonay": "1764 count includes saint-légier",
+        "Bussy-Chardonney": "with or without Chardonnay",
+        "Château-d'Œx": "unclear population count (with or without l'etivaz)",
+        "Chavannes-sur-Moudon": "unclear date 1406/36?",
+        "Corsier-sur-Vevey": "2000 quartier à vevey?",
+        "Lonay": "1453 mit denges",
+        "Lutry": "with or without Savigny",
+        "Mont-la-Ville": "1416 mit Cuarnens",
+        "Montreux": "fusions à répétition",
+        "Pampigny": "1453 with other villages",
+        "Valeyres-sous-Ursins": "1550 together with Sermuz",
+        "Vugelles-La-Mothe": "1850 mit Orges",
+        "Etoy": "30 foyer en 1453 with Lavigny",
+        "Yverdon-les-Bains": "Gressy (1379)"
+      }
+
+
+      let cl=console.log
+
+      let communesVD=[];
+      let communesCH=[];
+      let communesVDnames;
+
+      main()
+
+      function contains(array,elem){
+        return array.findIndex(x=>x==elem)!=-1
+      }
+
+      async function main(){
+
+        communesVD = await fetch(fileVD).then(r => r.json())
+        communesCH = await fetch(fileCH).then(r => r.json())
+
+        communesVDnames = communesVD.map(c=>c.name)
+
+        cl("communesVD nb=",communesVD.length)
+        cl("communesCH nb=",communesCH.length)
+
+        cl("step 1, add VD canton to all VD communes...")
+        communesVD.forEach(c =>{
+          c.canton="VD"
+          c.notes=""
+        })
+        cl("communesVD nb=",communesVD.length)
+
+        cl("step 2, ensure all special VD communes actually are in communesVD:")
+        cl("additionalDataVD not in cVD: ",additionalDataVD.filter(c=>!contains(communesVDnames,c)))
+        cl("noData not in cVD: ",noData.filter(c=>!contains(communesVDnames,c)))
+        cl("notesVD not in cVD: ",Object.keys(notesVD).filter(c=>!contains(communesVDnames,c)))
+
+        cl("step 3, notes that communes with additional data have some")
+        additionalDataVD.forEach(cn=>{
+          let ci = communesVDnames.findIndex(n=>n==cn)
+          communesVD[ci].notes += "hab+foyer data!, "
+        })
+        cl(communesVD.filter(c=>contains(additionalDataVD,c.name)))
+
+        cl("step 4, notes that communes with no data have none")
+        noData.forEach(cn=>{
+          let ci = communesVDnames.findIndex(n=>n==cn)
+          communesVD[ci].notes += "nodata fusion, "
+        })
+        cl(communesVD.filter(c=>contains(noData,c.name)))
+
+        cl("step 5, add notes to communes that have some...")
+        Object.keys(notesVD).forEach(cn=>{
+          let ci = communesVDnames.findIndex(n=>n==cn)
+          communesVD[ci].notes += notesVD[cn]+", "
+        })
+        cl(communesVD.filter(c=>contains(Object.keys(notesVD),c.name)))
+
+        cl("step 6, order communesVD")
+        let  VDscore = c=> {
+          return 10*contains(additionalDataVD,c.name)+
+            5*contains(Object.keys(notesVD),c.name)-
+            contains(noData,c.name)
+        }
+        communesVD.sort((a,b)=> VDscore(b)-VDscore(a))
+        cl("sorted communesVD names:",communesVD.map(c=>c.name))
+
+        cl("step 7, remove VD communes from CH")
+        communesCH = communesCH.filter(c=> !contains(communesVDnames,c.name))
+        cl("communesVD nb=",communesVD.length)
+        cl("communesCH nb=",communesCH.length)
+        cl("communesCH.length + communesVD.length=",communesCH.length+communesVD.length)
+
+        cl("step 8, concat them together")
+        communesCH = communesVD.concat(communesCH)
+        cl("communesCH nb=",communesCH.length)
+        
+        cl("step 9, download result:")
+        if(confirm("download result?")){
+          download_file("communesCH_VDclean.json",JSON.stringify({
+            communesToReview:communesCH,
+            reviewedCommunes:[]
+          }))
+        }
+      }
+
+
+      function download_file(filename, text) {
+        var element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+        element.setAttribute('download', filename);
+
+        element.style.display = 'none';
+        document.body.appendChild(element);
+
+        element.click();
+
+        document.body.removeChild(element);
+      }
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+  <title>Data validation</title>
+
+  <meta name="author" content="Didier" />
+      
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" />
+    <link rel="stylesheet" href="./lib/bootstrap.4.3.1.min.css" />
+    <link rel="stylesheet" href="./lib/main.css" />
+  </head>
+  <body>
+
+    
+
+    <nav>
+      
+    </nav>
+
+
+    <div class="container">
+    </div>
+
+
+    <footer>
+    </footer>
+
+    <script src="./lib/jquery-3.3.1.min.js"></script>
+    <script src="./lib/bootstrap.4.3.1.min.js"></script>
+    <script src="./lib/lodash.4.17.11.js"></script>
+    <script src="./lib/d3.v5.min.js"></script>
+    <script src="./lib/cookies.js"></script>
+    <script type="text/javascript">
+      "use strict";
+      
+      init(".container")
+
+      let communesToReview =[];
+      let currentCommuneToReviewIndex;
+      let reviewedCommunes = [];
+      let activeCommune = {}
+      let highlightedOriginalText = ""
+
+      let popDataOtextId =  hy => "pop-data-otext-"+hy.year+"-"+hy.pop
+      let popDataRowId =  hy => "pop-data-row-"+hy.year+"-"+hy.pop
+
+      let file = "./communes_VD.json";
+      let reviewedFile = "./communes_VD_clean.json";
+      main(file,reviewedFile)
+
+      async function main(communesFile,reviewedCommunesFile){
+
+        getLastCheckpoint()
+
+        if(communesToReview && reviewedCommunes && currentCommuneToReviewIndex>=0){
+          console.log("UPDATE SCREEN")
+          console.log("UPDATE SCREEN", communesToReview)
+          console.log("UPDATE SCREEN", reviewedCommunes)
+          console.log("UPDATE SCREEN", currentCommuneToReviewIndex)
+
+          console.log("communesToReview0 = ",communesToReview)
+          communesToReview = communesToReview.filter(isNotReviewed)
+          console.log("communesToReview1 = ",communesToReview)
+
+
+          updateScreen(communesToReview[currentCommuneToReviewIndex])
+        } else{
+          console.log(" NO DATA YET")
+        }
+      }
+
+      /**
+       * init: initializes the tag identified by the given cssSelector with the elementary components needed for data-validation
+       */
+      function init(cssSelector){
+        let container = d3.select(cssSelector)
+        container.append("h1").append("a").attr("id","active-commune-name")
+        container.append("div").attr("id","active-commune-problems")
+            .classed("row",true)
+        container.append("h3").html("Original Text")
+        let otext = container.append("div")
+            .classed("row",true)
+          .append("p").attr("id","original-text")
+
+        // save button
+        let buttonsRow = container.append("div")
+            .classed("row",true)
+        buttonsRow.append("button")
+            .classed("btn btn-large btn-outline-secondary",true)
+            .html("< Rereview last")
+            .on("click",() => {
+              if(reviewedCommunes.length>0){
+                updateScreen(rereviewCommune(reviewedCommunes.length-1))
+              }else{
+                alert("no communes reviewed")
+              }
+            })
+        buttonsRow.append("button")
+            .classed("btn btn-large btn-success",true)
+            .html("Save & Next >")
+            .on("click",() => {
+              setCommuneAsReviewed(activeCommune)
+              currentCommuneToReviewIndex = Math.min(communesToReview.length-1,currentCommuneToReviewIndex)
+              let cToReview = communesToReview[currentCommuneToReviewIndex]
+              console.log("communesToReview = ",communesToReview)
+              console.log("cToReview = ",cToReview)
+              if(cToReview){
+                updateScreen(cToReview)
+              } else{
+                downloadCheckpoint()
+              }
+            })
+        buttonsRow.append("button")
+            .classed("btn btn-large btn-outline-secondary",true)
+            .html("< Prev unreviewed")
+            .on("click",() => {
+              currentCommuneToReviewIndex = Math.max(0,currentCommuneToReviewIndex-1)
+              let cToReview = communesToReview[currentCommuneToReviewIndex]
+              if(cToReview){
+                updateScreen(cToReview)
+              } else{
+                alert("Jump over problem: no commune at given index")
+              }
+            })
+        buttonsRow.append("button")
+            .classed("btn btn-large btn-outline-secondary",true)
+            .html("Next unreviewed >")
+            .on("click",() => {
+              currentCommuneToReviewIndex = Math.min(communesToReview.length-1,currentCommuneToReviewIndex+1)
+              let cToReview = communesToReview[currentCommuneToReviewIndex]
+              if(cToReview){
+                updateScreen(cToReview)
+              } else{
+                alert("Jump over problem: no commune at given index")
+              }
+            })
+
+        container.append("h3").html("Extracted Data")
+
+        let smallDataDiv = container.append("div")
+            .classed("row",true)
+        // extracted canton
+        let cantonForm = smallDataDiv.append("form").attr("onsubmit","return false;")
+            .attr("id","canton-form")
+            .html(
+              '<label for="canton-input">Canton: </label>'+
+              '<input id="canton-input" type="text" name="canton" style="width:50px;"'+
+              ' title="2 capital letters shortcut for canton" pattern="[A-Z]{2}" required="true">'+
+              '<input type="submit" value="correct" class="btn btn-sm btn-outline-primary">'
+            )
+        // first mention
+        let firstmentionForm = smallDataDiv.append("form").attr("onsubmit","return false;")
+            .attr("id","firstmention-form")
+            .html(
+              '<label for="firstmention-input">First mention: </label>'+
+              '<input id="firstmention-input" type="text" name="firstmention" style="width:100px;"'+
+              ' title="Année de la première mention de la commune" pattern="\\d{2,}" required="true">'+
+              '<input type="submit" value="correct" class="btn btn-sm btn-outline-primary">'
+            )
+
+
+        /*cantonForm.append("input").attr("type","text")
+          .attr("name","pop")
+          .attr("title","population of the commune at given year")
+          .attr("pattern","\\d+")
+          .attr("required",true)*/
+
+        // extracted data table
+        let tableFormParentId = "add-data-form"
+        let tableFormParent = container.append("div")
+            .classed("row",true)
+          .append("form").attr("onsubmit","return false;")
+            .attr("id",tableFormParentId)
+        let table = createHabYearTable("#"+tableFormParentId,"pop-table")
+        table.select("tr").append("th").attr("scope","col").html("action")
+        
+        // actions data table
+        container.append("h3").html("Actions undertaken")
+        let actionsTable = createHabYearTable(cssSelector,"actions-table")
+        actionsTable.select("tr").append("th").attr("scope","col").html("action done")
+        actionsTable.select("tr").append("th").attr("scope","col").html("undo")
+
+        // notes
+        container.append("h3").html("Notes")
+        let notesForm = container.append("div")
+            .classed("row",true)
+          .append("form").attr("id","notes-form").attr("onsubmit","return false;")
+        notesForm.append("textarea").attr("cols",100).attr("rows",3)
+        notesForm.append("br")
+        notesForm.append("input")
+            .attr("type","submit")
+            .attr("value","add")
+            .classed("btn btn-large btn-outline-primary",true)
+
+        // download checkpoint
+        container.append("div")
+            .classed("row",true)
+            .attr("style","margin-top:20px;")
+          .append("button")
+            .classed("btn btn-large btn-success",true)
+            .html("Download checkpoint")
+            .on("click",() => downloadCheckpoint())
+
+        // upload dropzone
+        container.append("div")
+            .classed("row",true)
+            .attr("id","file-dropzone")
+            .append("h3").html("dropzone:")
+      }
+
+      /** Creates a table ready to be filled with  */
+      function createHabYearTable(parentCssSelector,tableId){
+        let table = d3.select(parentCssSelector).append("table").attr("id",tableId)
+            .classed("table",true)
+        let theadRow = table.append("thead").append("tr")
+        theadRow.selectAll("th").data(["#","original text","year","pop","unit"]).enter()
+          .append("th")
+            .attr("scope","col")
+            .html(t=>t)
+        table.append("tbody")
+
+        return table
+      }
+
+      /** Fill a table with a tbody with pop-data rows*/
+       function fillHabYearTable(tableCssSelector, hab_year){
+
+        let tbody = d3.select(tableCssSelector+" tbody")
+        // ensure there is no data in table
+        tbody.selectAll(".pop-data").remove()
+        // ...and refill it
+        let dataRows = tbody.selectAll(".pop-data")
+            .data(hab_year)
+            
+        // append new data rows
+        let dataRowsEnter = dataRows.enter()
+            .append("tr").classed("pop-data",true).attr("id",(hy,i)=> popDataRowId(hy))
+        dataRowsEnter.append("th").html((hy,i) => i)
+            .attr("scope","row")
+        dataRowsEnter.append("td").html((hy,i) => hy.original_text).classed("pop-original-text",true)
+        dataRowsEnter.append("td").html((hy,i) => hy.year).classed("pop-year",true)
+        dataRowsEnter.append("td").html((hy,i) => hy.pop).classed("pop-pop",true)
+        dataRowsEnter.append("td").html((hy,i) => hy.unit).classed("pop-unit",true)
+        
+        return(dataRowsEnter)
+      }
+
+      /**
+       * updateScreen: update the validation screen with the given commune.
+       * 
+       */
+      function updateScreen(commune){
+        activeCommune = commune
+        console.log("updateScreen commune = ", commune)
+        $("#active-commune-name").html(commune.name+"<a href='https://beta.hls-dhs-dss.ch"+commune.url+"' target='blank' style='font-size:16px;'><i class='fas fa-external-link-alt'></i></a>")
+
+        // re-init tabellen daten extractor arrays
+        tabellePop = []
+        tabelleYear = []
+
+        // if needed, add actions arrays
+        if(!commune.actionsDone){ commune.actionsDone = [] }
+        if(!commune.actionsUndone){ commune.actionsUndone = [] }
+
+        // if not present, add canton:
+        let cantonRegex = /([A-Z]{2})/g
+        if(!commune.canton){
+          commune.canton = commune.text.match(cantonRegex)[0].trim()
+        }
+        $("#canton-input").val(commune.canton)
+        d3.select("#canton-form")
+            .on("submit",()=>{
+              console.log("canton-form SUBMIT, ",$("#canton-input").val())
+              commune.canton = $("#canton-input").val()//cantonInput.attr("value")
+            })
+
+        // first mention
+        if(!commune.firstmention){
+          commune.firstmention = d3.min(commune.text.match(/\d{4}/g).map(x=>parseInt(x)))
+        }
+        $("#firstmention-input").val(commune.firstmention)
+        d3.select("#firstmention-form")
+            .on("submit",()=>{
+              console.log("firstmention-form SUBMIT, ",$("#firstmention-input").val())
+              commune.firstmention = parseInt($("#firstmention-input").val())
+            })
+
+        // notes
+        $("#notes-form textarea").val(commune.notes)
+        d3.select("#notes-form")
+            .on("submit",()=>{
+              console.log("notes-form SUBMIT, ",$("#notes-form textarea").val())
+              commune.notes = $("#notes-form textarea").val()
+            })
+
+        // list communes problems
+        let problemsDiv = d3.select("#active-commune-problems")
+        problemsDiv.selectAll("div").remove()
+        let problems = _.map(commune.problems,problem=>{
+          problemsDiv.append("div").classed("bg-danger text-dark",true).html(problem.short)
+          return problem
+        })
+        let warnings = _.map(commune.warnings,warning=>{
+          problemsDiv.append("div").classed("bg-warning text-dark",true).html(warning.short)
+          return warning
+        })
+        if( (warnings.length+problems.length)==0){
+          problemsDiv.append("div").classed("bg-success text-white",true).html("no problemo detected")
+        }
+
+        /*if(commune.problem_time>0){
+          problemsDiv.append("div").classed("bg-warning text-dark",true).html("TIME: "+commune.problem_time)
+        }
+        if(commune.problem_unit>0){
+          problemsDiv.append("div").classed("bg-warning text-dark",true).html("UNIT: "+commune.problem_unit)
+        }
+        if(commune.problem_start>0){
+          problemsDiv.append("div").classed("bg-warning text-dark",true).html("START: "+commune.problem_start)
+        }
+        if( commune.problem_time==0 && commune.problem_unit==0 && commune.problem_start==0){
+          problemsDiv.append("div").classed("bg-success text-white",true).html("no problemo detected")
+        }*/
+
+        // insert spans surrounding data o-texts in the original text
+        highlightedOriginalText = commune.text.replace(commune.canton,"<span id='canton-otext' style='background-color:yellow;'>$&</span>")
+        highlightedOriginalText = highlightedOriginalText.replace(commune.firstmention,"<span id='firstmention-otext' style='background-color:yellow;'>$&</span>")
+        commune.hab_year.forEach((hy,i) => {
+          let regex = new RegExp(escapeRegExp(hy.original_text))
+          console.log("popDataOtextId = ", popDataOtextId, ", hy=",hy)
+          highlightedOriginalText = highlightedOriginalText.replace(regex,"<span id='"+popDataOtextId(hy)+"' class='pop-data-otext'>$&</span>")
+        });
+        
+        // updating original text
+        let otextColors = d3.scaleSequential(d3.interpolateSinebow).domain([0,commune.hab_year.length])
+        let otext = d3.select("#original-text").html(highlightedOriginalText)
+        otext.selectAll(".pop-data-otext")
+            .data(commune.hab_year,function(hy){
+              return hy? popDataOtextId(hy):this.id
+            })
+            .attr("style",(hy,i) => "border-radius:4px;background-color:"+otextColors(i)+";")
+            .append("span").html('<i class="fas fa-times"></i>')
+            .attr("class","btn-outline-danger")
+            //.attr("style",(hy,i) => "background-color: white;border:1px")
+            .on("click",(hy,i) => {
+              console.log("pre1 deleteHabYear commune = ", commune)
+              deleteHabYear(hy,i,commune)
+              console.log("post1 deleteHabYear commune = ", commune)
+              updateScreen(commune)
+            })
+
+        // fill data table
+        let dataRows = fillHabYearTable("#pop-table",commune.hab_year)
+        // color # col:
+        dataRows.select("th")
+            .attr("style",(hy,i) => "background-color:"+otextColors(i))
+        // add buttons to delete data
+        dataRows.append("td").append("button")
+            .classed("btn btn-sm btn-outline-danger",true)
+            .html('<i class="fas fa-times"></i>')
+            .on("click",(hy,i) => {
+              console.log("pre2 deleteHabYear commune = ", commune)
+              deleteHabYear(hy,i,commune)
+              console.log("post2 deleteHabYear commune = ", commune)
+              updateScreen(commune)
+            })
+        
+        // add row to add data
+        let newData = d3.select("#pop-table tbody").append("tr")
+            .classed("pop-data",true)
+            .attr("id","new-pop-data")
+        newData.append("th").html("?")
+        let newDataOtext = newData.append("td").classed("pop-original-text",true)
+          .append("input").attr("type","text")
+          .attr("style","border:0px;")
+          .attr("name","original-text")
+          .attr("title","select some text as source for this data.")
+          .attr("required",true)
+          // makes element unselectable:
+          .on("focus",function(){document.activeElement.blur()})
+        newData.append("td").classed("pop-year",true)
+          .append("input").attr("type","text")
+          .attr("name","year")
+          .attr("title","year of this datapoint")
+          .attr("pattern","\\d+")
+          .attr("required",true)
+        newData.append("td").classed("pop-pop",true)
+          .append("input").attr("type","text")
+          .attr("name","pop")
+          .attr("title","population of the commune at given year")
+          .attr("pattern","\\d+")
+          .attr("required",true)
+        newData.append("td").classed("pop-unit",true)
+          .append("input").attr("type","text")
+          .attr("required",true)
+        let newDataButton = newData.append("td").append("input")
+            .attr("type","submit")
+            .attr("value","add")
+            .classed("btn btn-sm btn-outline-primary",true)
+        d3.select("#add-data-form")
+            .on("submit",()=>{
+              addHabYear(commune)
+              updateScreen(commune)
+            })
+
+        // assign original-text selection to the new data form "original-text" input
+        otext.on("mouseup",d =>{
+          let selText = getSelectedText()
+          if(selText){
+            $("#new-pop-data .pop-original-text input").val(selText)
+          }
+          $("#new-pop-data .pop-year input").focus()
+        })
+
+        // fill action table
+        dataRows = fillHabYearTable("#actions-table",commune.actionsDone.map(a=>a.data))
+        // indicate action
+        dataRows.append("td")
+            .html((hy,i)=>commune.actionsDone[i].action)
+            .attr("class",(hy,i)=>{
+              if(commune.actionsDone[i].action=="deleted"){
+                return "bg-danger text-white"
+              }
+              if(commune.actionsDone[i].action=="added"){
+                return "bg-primary text-white"
+              }
+            })
+        dataRows.append("td").append("button")
+            .classed("btn btn-sm btn-outline-warning",true)
+            .html('<i class="fas fa-undo"></i>')
+            .on("click",(hy,i) => {
+              undo(commune.actionsDone[i],commune)
+              updateScreen(commune)
+            })
+      }
+      
+      
+      /**
+       * addHabYear: add the hab-year data in form to the active commune
+       */
+      function addHabYear(commune){
+        let hy ={
+          year: $("#new-pop-data .pop-year input").val(),
+          pop: $("#new-pop-data .pop-pop input").val(),
+          unit: $("#new-pop-data .pop-unit input").val(),
+          original_text: $("#new-pop-data .pop-original-text input").val()
+        }
+        commune.actionsDone.push({
+          action:"added",
+          data:hy,
+          position:commune.hab_year.length,
+          date_action: ""+new Date()
+        })
+        commune.hab_year.push(hy)
+      }
+      
+      /**
+       * deleteHabYear: removes the given hab-year data from the active commune
+       */
+      function deleteHabYear(hy,i,commune){
+        let hypos = commune.hab_year.findIndex(hy2 => hy2.original_text== hy.original_text)
+        commune.actionsDone.push({
+          action:"deleted",
+          data:hy,
+          position:hypos,
+          date_action: ""+new Date()
+        })
+        commune.hab_year.splice(hypos,1)
+      }
+
+      function undo(action,commune){
+        console.log("UNDO")
+        let actionPos = commune.actionsDone.indexOf(action)
+        if(action.action=="deleted"){
+          commune.hab_year.splice(action.position,0,action.data)
+        }
+        if(action.action=="added"){
+          let hypos = commune.hab_year.findIndex(hy2 => hy2.original_text== action.data.original_text)
+          commune.hab_year.splice(hypos,1)
+        }
+        commune.actionsDone.splice(actionPos,1)
+        commune.actionsUndone.push(action)
+      }
+
+      /** Checkpoint: where the data is always saved
+       */
+      function getLastCheckpoint(key = "checkpoint"){
+        let cp = localStorage.getItem(key)
+        if(cp && cp!="undefined" && cp!="null"){
+          cp = JSON.parse(cp)
+          reviewedCommunes = cp["reviewedCommunes"]
+          communesToReview = cp["communesToReview"]
+          currentCommuneToReviewIndex = cp["currentCommuneToReviewIndex"]
+        }
+        return cp
+      }
+      function saveCheckpoint(key = "checkpoint", currentCommuneToReviewIndexKey = "currentCommuneToReviewIndex"){
+        localStorage.setItem(key,JSON.stringify({
+          "reviewedCommunes":reviewedCommunes,
+          "communesToReview":communesToReview,
+          "currentCommuneToReviewIndex":currentCommuneToReviewIndex
+        }))
+      }
+      /**
+       * Handle reviewedCommunes
+       */
+      function setCommuneAsReviewed(commune){
+        reviewedCommunes.push(commune)
+        let index = communesToReview.findIndex(c => c.name==commune.name)
+        console.log("setCommuneAsReviewed() splice index = ",index)
+        console.log("communesToReview pre splice= ",communesToReview)
+        communesToReview.splice(index,1)
+        console.log("communesToReview post splice= ",communesToReview)
+        saveCheckpoint()
+      }
+      function rereviewCommune(reviewedCommunesIndex){
+        let commune = reviewedCommunes.splice(reviewedCommunesIndex,1)[0]
+        communesToReview.splice(currentCommuneToReviewIndex,0,commune)
+        saveCheckpoint()
+        return commune
+      }
+      function isNotReviewed(commune){
+        let rcIndex = reviewedCommunes.findIndex(co=>co.name==commune.name)
+        console.log("rcIndex = ",rcIndex)
+        return rcIndex==-1
+      }
+      /**
+       * Dangerous: re-upload reviewedCommunes
+      */
+      function compareUploadedReviewedCommunes(reviewedCommunes,newReviewedCommunes){
+
+        let noLongerReviewed = reviewedCommunes.filter(rc => newReviewedCommunes.findIndex(nrc => nrc.name==rc.name)!=-1)
+        let newlyReviewed = newReviewedCommunes.filter(nrc => reviewedCommunes.findIndex(rc => nrc.name==rc.name)==-1)
+
+        console.log(
+          "The following "+noLongerReviewed.length+" communes will be unreviewed if you proceed:\n"+
+          noLongerReviewed.map(c=>c.name).join(", ")+"\n"+
+          "The following "+newlyReviewed.length+" communes will be newly reviewed if you proceed:\n"+
+          newlyReviewed.map(c=>c.name).join(", "))
+      }
+
+
+      /**
+       */
+      let getSelectedText = () => window.getSelection().toString()
+      
+
+      // utility function to transform a string in a valid Regex
+      function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+      }
+
+      function download_file(filename, text) {
+        var element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+        element.setAttribute('download', filename);
+
+        element.style.display = 'none';
+        document.body.appendChild(element);
+
+        element.click();
+
+        document.body.removeChild(element);
+      }
+
+      function downloadCheckpoint(){
+        let areYouSure = confirm("Are you sure you want to download the checkpoint? Localstorage data will be then removed.")
+        if(areYouSure){
+          download_file(
+            "communes_V2_checkpoint_"+(+new Date())+".json",
+            JSON.stringify({"reviewedCommunes":reviewedCommunes,"communesToReview":communesToReview,"currentCommuneToReviewIndex":currentCommuneToReviewIndex})
+          )
+          localStorage.setItem("checkpoint","")
+        }
+      }
+      
+      Array.prototype.findByName = function(name){
+        return this.find(c=>c.name.match(name))
+      }
+
+      /* ---------------- add daten-in-tabellen programmatically ---------------- */
+
+      let tabellePop = []
+      let tabelleYear = []
+      function extractTabelleRow(string){
+        return string.replace(/ /g,"").split("\t").map(p=>parseInt(p.replace(/\D/g,"")))
+      }
+      function popFromTabelle(string){
+        tabellePop = tabellePop.concat(extractTabelleRow(string))
+        return tabellePop
+      }
+      function yearFromTabelle(string){
+        tabelleYear = tabelleYear.concat(extractTabelleRow(string))
+        return tabelleYear
+      }
+      function assembleTabelle(){
+        if(tabellePop.length==tabelleYear.length){
+          let newhy = tabelleYear.map((y,i)=>{
+            return {
+              year:y,
+              pop:tabellePop[i],
+              unit:"Einw",
+              // random original text:
+              original_text: activeCommune.text.substr(i*10,10)
+            }
+          })
+          activeCommune.hab_year = activeCommune.hab_year.concat(newhy)
+          activeCommune.notes = (activeCommune.notes? activeCommune.notes+"\n":"")+"Daten in tabelle"
+          updateScreen(activeCommune)
+        }else{
+          console.log("ERROR: tabellen not same size")
+        }
+      }
+
+      /* ---------------- data-correction functions on the fly ---------------- */
+
+      function rereviewBadUnits(){
+        let rcbunames = [ "Adlikon", "Aesch bei Birmensdorf", "Altishofen", "Arosa", "Beinwil am See", "Biezwil", "Brittnau", "Celerina/Schlarigna", "Ettingen", "Fischbach-Göslikon" ]
+        let rcbuindex = rcbunames.map(rcbun =>{
+          let rcbui = reviewedCommunes.findIndex(rc => rc.name==rcbun)
+          rereviewCommune(rcbui)
+          return rcbui
+        })
+      }
+
+
+      /* ---------------- Code to have a file-dropzone, so that a user can simply drop a gedcom file, unused yet ---------------- */
+
+      function over() {
+        d3.event.stopPropagation();
+        d3.event.preventDefault();
+        d3.event.dataTransfer.dropEffect = 'copy';
+      }
+
+      let uploaded
+      let svg = d3.select('#file-dropzone')
+      .attr("style",'width:100%;height:200px;')
+      .attr('dropzone', 'copy')
+      .on('drop', function(e) {
+          d3.event.stopPropagation();
+          d3.event.preventDefault();
+          let f = d3.event.dataTransfer.files[0],
+              reader = new FileReader();
+
+          reader.onload = function(e) {
+            uploaded = JSON.parse(e.target.result);
+            console.log("Current status:\n",{"communesToReview":communesToReview,"reviewedCommunes":reviewedCommunes,"currentCommuneToReviewIndex":currentCommuneToReviewIndex});
+            if(!uploaded.reviewedCommunes.length){
+              console.log("Current: no reviewed communes yet")
+            }
+            for(let i = Math.max(0,uploaded.reviewedCommunes.length-3);i<uploaded.reviewedCommunes.length;i++){
+              console.log("Current: last reviewed communes ",i,": ",uploaded.reviewedCommunes[i].name)
+            }
+            console.log("uploaded content:\n",uploaded);
+            if(!uploaded.reviewedCommunes.length){
+              console.log("Uploaded: no reviewed communes yet")
+            }
+            for(let i = Math.max(0,uploaded.reviewedCommunes.length-3);i<uploaded.reviewedCommunes.length;i++){
+              console.log("Uploaded: last reviewed communes ",i,": ",uploaded.reviewedCommunes[i].name)
+            }
+
+            console.log("COMPARE")
+            compareUploadedReviewedCommunes(reviewedCommunes,uploaded.reviewedCommunes)
+
+            console.log("DONECOMPARE")
+            
+            let noDataInBrowser = reviewedCommunes.length==0 && communesToReview.length==0
+
+            let doUpload = noDataInBrowser || confirm("Are you sure you want to erase the data already in localStorage?")
+            console.log("DOUPLOAD?")
+
+            if(doUpload){
+              console.log("DOUPLOAD")
+              reviewedCommunes = uploaded.reviewedCommunes
+              communesToReview = uploaded.communesToReview
+              currentCommuneToReviewIndex = uploaded.currentCommuneToReviewIndex
+
+
+              communesToReview.forEach(c=> c.gravity = Object.keys(c.problems).length+Object.keys(c.warnings).length)
+              console.log("Nb reviewed communes: ",reviewedCommunes.length)
+              console.log("Nb communes to review: ",communesToReview.length)
+              console.log("Nb communes to review with detected problems: ",communesToReview.filter(c=>c.gravity>0).length)
+
+              updateScreen(communesToReview[currentCommuneToReviewIndex])
+            }
+          };
+
+          reader.readAsText(f);
+      })
+      .on('dragenter', over)
+      .on('dragexit', over)
+      .on('dragover', over);
+
+
+    </script>
+    
+  
+
+
+
+  </body>
+</html>

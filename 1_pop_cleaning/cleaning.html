@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+  <title>Data cleaning</title>
+
+  <meta name="author" content="Didier" />
+      
+    <!--link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" /-->
+    <link rel="stylesheet" href="./lib/bootstrap.4.3.1.min.css" />
+    <link rel="stylesheet" href="./lib/main.css" />
+  </head>
+  <body>
+
+    
+
+    <nav>
+      
+    </nav>
+
+
+    <div class="container">
+    </div>
+
+
+    <footer>
+    </footer>
+
+    <script src="./lib/jquery-3.3.1.min.js"></script>
+    <script src="./lib/bootstrap.4.3.1.min.js"></script>
+    <script src="./lib/lodash.4.17.11.js"></script>
+    <script src="./lib/d3.v5.min.js"></script>
+    <script src="./lib/cookies.js"></script>
+    <script type="text/javascript">
+      "use strict";
+      
+      /* This script's aims are to improve the data-cleaning done on VD communes on points such as:
+       * - complete dual foyer-habitant values
+       * - add notes to some commune
+       * ...as well as integrate it together with all CH communes
+       * ...and output them in a file ready for proper validation of the non-VD communes.
+       */
+
+      let fileToLoad = "./communes_checkpoint_1553017716722.json"
+
+      let communesToReview =[]
+      let currentCommuneToReviewIndex
+      let reviewedCommunes = []
+      let TGreviewedCommunes = []
+      let errorsCommunes = []
+      let data = []
+
+      let uniqueUnits
+      // acceptedUnits: hand-picked from uniqueUnits
+      let acceptedUnits = [
+          'Haushalte',
+          'Einw',
+          'Feuerstätten',
+          'Erwachsene',
+          'Haushaltungen',
+          'Häuser',
+          'Kirchgenossen',
+          'Einw Munizipalgem.',
+          'Einw Ortsgem.',
+          'Steuerpflichtige',
+          'Erwachsenen',
+          'Einwohner',
+          'Einw evang',
+          'Einw Feuerschaukreis',
+          'Wohnhäuser',
+          'Kanoniker',
+          'Höfe',
+          'Herdstellen',
+          'Hofstätten',
+          'Pesttote',
+          'Fam',
+          'Kommunikanten',
+          'Feuerstellen',
+          'Einw Kirchgem.',
+          'Juden',
+        ]
+      let regexAcceptedUnits = /Einw|Feuer|Haus|Häus|Höfe|Hof|Wohn/
+      let rcBadUnits
+
+      // original regex: r"\W([1-2]\d{3}) (\d+(?:'\d+)?)(\W.+?)??(?:;|\.)"
+      let regexMitCaUndKomma = /\W([1-2]\d{3})(?: ca\.?)? (\d+(?:'\d+)?)(\W.+?)??(?:;|\.|,)/g
+
+      let cl=console.log
+
+      main()
+
+      
+      async function main(){
+
+        data = await fetch(fileToLoad).then(r => r.json())
+
+        communesToReview = data.communesToReview
+        currentCommuneToReviewIndex = data.currentCommuneToReviewIndex
+        reviewedCommunes = data.reviewedCommunes
+
+        // trim all the hy units (not done before?!?)
+        reviewedCommunes.forEach(rc => rc.hab_year.forEach(hy=> hy.unit = hy.unit.trim()))
+
+        uniqueUnits = _.uniq(_.flatMap(reviewedCommunes,rc => rc.hab_year.map(hy=>hy.unit)))
+        // acceptedUnits = ...
+        rcBadUnits = reviewedCommunes.filter((rc,i) =>  
+          d3.sum(rc.hab_year.map(hy=> !acceptedUnits.contains(hy.unit)))>0
+        )
+        
+        // remove TG
+        TGreviewedCommunes = reviewedCommunes.filter(isTG)
+        TGreviewedCommunes.forEach(addProblemsWarningsAttr)
+        reviewedCommunes = reviewedCommunes.filter(c=>!isTG(c))
+        // deprecate hab-year and re-exrtact all the data!
+        reviewedCommunes.forEach(deprecateHabYear)
+        communesToReview.forEach(deprecateHabYear)
+        reviewedCommunes.forEach(extractHabYear)
+        communesToReview.forEach(extractHabYear)
+        reviewedCommunes.forEach(extractCanton)
+        communesToReview.forEach(extractCanton)
+        reviewedCommunes.forEach(extractFirstMention)
+        communesToReview.forEach(extractFirstMention)
+        reviewedCommunes.forEach(addProblemsWarningsAttr)
+        communesToReview.forEach(addProblemsWarningsAttr) 
+
+        let discrepancyPostExtract = reviewedCommunes.filter(detectErrors).length
+        console.log("Nb of reviewed communes with wrong data AFTER EXTRACTION: ",discrepancyPostExtract)
+
+        reviewedCommunes.forEach(isolateTrailingMatches)
+        communesToReview.forEach(isolateTrailingMatches)
+
+        // how many communes are left over? -> 60!
+        let discrepancyPostTrailing = reviewedCommunes.filter(detectErrors).length
+        console.log("Nb of reviewed communes with wrong data AFTER TRAILING MATCH ISOLATION: ",discrepancyPostTrailing)
+
+        // post 1850: we only have Einw units... setPost1850UnitsToEinw
+        reviewedCommunes.forEach(setPost1850UnitsToEinw)
+        communesToReview.forEach(setPost1850UnitsToEinw)
+        let discrepancyPost1850Einw = reviewedCommunes.filter(detectErrors).length
+        console.log("Nb of reviewed communes with wrong data AFTER SET POST 1850 UNIT TO EINW: ",discrepancyPost1850Einw)
+        
+        reviewedCommunes.forEach(rc =>{
+          rc.mismatches = findMismatches(rc)
+          rc.nbErrors = rc.mismatches.nbErrors
+        })
+
+        errorsCommunes = reviewedCommunes.filter(rc=>rc.nbErrors)
+        console.log("Average nb of mismatches per reviewed commune: ",errorsCommunes.reduce((a,b)=>
+          a+b.mismatches.nbErrors
+        ,0)/errorsCommunes.length)
+
+
+        // Look at what it does on communesToReview
+        communesToReview.forEach(ctr =>{
+          ctr.mismatches = findMismatches(ctr)
+          ctr.nbErrors = ctr.mismatches.nbErrors
+        })
+
+        let reviewDiscrepancyCommunes = communesToReview.filter(ctr=>ctr.nbErrors)
+        console.log("Nb of communes-to-review where new technique yields different results: ",reviewDiscrepancyCommunes.length)
+        console.log("Average nb of mismatches per unreviewed commune: ",reviewDiscrepancyCommunes.reduce((a,b)=>
+          a+b.mismatches.nbErrors
+        ,0)/reviewDiscrepancyCommunes.length)
+
+        cl("finished")
+
+        cl("preparing data for output:")
+        //set reviewedCommunes back to original state + TG
+        reviewedCommunes.forEach(rc=>{
+          rc.hab_year = rc.old_hab_year
+          rc.old_hab_year = null
+        })
+        reviewedCommunes.forEach(addProblemsWarningsAttr)
+        reviewedCommunes = TGreviewedCommunes.concat(reviewedCommunes)
+        
+        // raise flags
+        flagRaisers.forEach(fr => reviewedCommunes.forEach(fr))
+        flagRaisers.forEach(fr => communesToReview.forEach(fr))
+
+        // download result
+        if(confirm("download result?")){
+          download_file("communes_cleaned_V2_"+(+new Date())+".json",JSON.stringify({
+            currentCommuneToReviewIndex:currentCommuneToReviewIndex,
+            communesToReview:communesToReview,
+            reviewedCommunes:reviewedCommunes
+          }))
+        }
+      }
+
+
+      let cantonRegex = /([A-Z]{2})/g
+      function extractCanton(commune){
+        if(!commune.canton){
+          commune.canton = commune.text.match(cantonRegex)[0].trim()
+        }
+      }
+      function isTG(commune){return Boolean(commune.canton.match("TG"))}
+
+      function extractHabYear(commune){
+        commune.hab_year = commune.text.matchAll(regexMitCaUndKomma)
+        commune.hab_year = commune.hab_year? commune.hab_year : []
+        let lastUnit = undefined
+        commune.hab_year = commune.hab_year.map((hy,hyi)=>{
+          let unit = hy[3]? hy[3] : lastUnit
+          //cl("lastUnit: ",lastUnit,", hy[3]: ",hy[3], ", unit:",unit)
+          lastUnit = unit
+          let newhy = {
+            original_text: hy[0],
+            year: parseInt(hy[1]),
+            pop: parseInt(hy[2].replace(/'/g,"")),
+            unit: unit,
+            index: hy.index,
+            problems:{},
+            warnings:{}
+          }
+          return newhy
+        })
+      }
+
+      function addProblemsWarningsAttr(commune){
+        commune.problems={}
+        commune.warnings={}
+        commune.hab_year.forEach(hy=>{
+          hy.problems={}
+          hy.warnings={}
+        })
+      }
+
+
+      let firstMentionRegex = /\W\d{3,4}\W/g
+      function extractFirstMention(commune){
+        if(!commune.firstmention){
+          let hyStartIndex = _.min(commune.hab_year.map(hy=>hy.index))
+          let candidates = commune.text.substr(0,hyStartIndex).match(firstMentionRegex)
+          commune.firstmention = candidates? _.min(candidates.map(y=>parseInt(y.replace(/\W/,"")))) : undefined
+        }
+      }
+
+      let hashHabYear = hy => hy.year+"-"+hy.pop+"-"+ (hy.unit? hy.unit.trim():hy.unit)
+      let ohys
+      let hys
+      let ohyhashSet
+      let hyhashSet
+      function findMismatches(commune){
+        ohys = commune.old_hab_year
+        hys = commune.hab_year
+        if(!ohys){
+          cl("ohys: ",ohys, ", commune: ",commune)
+        }
+        ohyhashSet = new Set(ohys.map(hashHabYear))
+        hyhashSet  = new Set(hys.map(hashHabYear))
+        //console.log("ohyhashSet: ",ohyhashSet)
+        //console.log("hyhashSet: ",hyhashSet)
+        
+        let hyFalseNegatives = ohys.filter(hy => ! hyhashSet.has(hashHabYear(hy)))
+        let hyFalsePositives =  hys.filter(hy => !ohyhashSet.has(hashHabYear(hy)))
+
+        return {
+          nbErrors:   hyFalseNegatives.length+hyFalsePositives.length,
+          nbFalseNeg: hyFalseNegatives.length,
+          nbFalsePos: hyFalsePositives.length,
+          falseNeg: hyFalseNegatives,
+          falsePos: hyFalsePositives
+        }
+      }
+      let detectErrors = c=> findMismatches(c).nbErrors!=0
+
+      function setPost1850UnitsToEinw(commune){
+        commune.hab_year.forEach(hy=>{
+          if(hy.year>=1850){
+            if(!hy.unit || (hy.unit.trim()!="Einw" && hy.unit.trim()!="Einwohner")){
+              cl("weird units: ", hy.unit)
+              commune.notes += "\nweird post-1850 units: "+hy.unit
+              hy.unit="Einw"
+            }
+          }
+        })
+      }
+
+      function isolateTrailingMatches(commune){
+        let cutoffYear = 1990
+        let acceptedTrail = 100
+        commune.cutoffIndex = commune.hab_year.findIndex(hy => hy.year>=cutoffYear)
+        commune.cutoffIndex = commune.cutoffIndex!=-1?commune.hab_year[commune.cutoffIndex].index:-1
+        commune.cutoffIndex = commune.cutoffIndex+acceptedTrail
+        commune.tolate_hab_year = commune.hab_year.filter(hy=>hy.index>commune.cutoffIndex)
+        commune.hab_year = commune.hab_year.filter(hy=>hy.index<=commune.cutoffIndex)
+        //cl("cutoffIndex=",commune.cutoffIndex, ", commune.hab_year.length=",commune.hab_year.length, ", commune.tolate_hab_year.length=",commune.tolate_hab_year.length)
+      }
+
+      
+      Array.prototype.findByName = function(name){
+        return this.find(c=>c.name.match(name))
+      }
+
+      function deprecateHabYear(c){
+        c.old_hab_year = c.hab_year
+        c.hab_year = null
+      }
+
+      // flag problems for wrong units
+      function flagUnit(commune){
+        if(!commune.hab_year){
+          cl("NO HAB_YEAR: ",commune.name)
+        }
+        commune.hab_year.forEach(hy=>{
+          if(!hy.unit || !acceptedUnits.find(u=> u==hy.unit.trim())){
+            cl("hy.unit=",hy.unit,", acceptedUnits.find(u=> u==hy.unit)=",acceptedUnits.find(u=> u==hy.unit))
+            hy.problems.unit = true
+            commune.problems.unit? commune.problems.unit.push(hy.unit) : commune.problems.unit = [hy.unit]
+          }
+        })
+        if(commune.problems.unit){
+            commune.problems.unit = {
+              problematicsUnits: commune.problems.unit,
+              count: commune.problems.unit.length,
+              short: "UNIT: "+commune.problems.unit.join(", ")
+            }            
+          }
+      }
+
+      // flag problems for time problems
+      function flagTime(commune){
+        let previousTime = 0
+        commune.hab_year.forEach(hy=>{
+          if(hy.year<previousTime){
+            hy.problems.time = true
+            commune.problems.time? commune.problems.time.push(hy.year) : commune.problems.time = [hy.year]
+          }
+          previousTime = hy.year
+        })
+        if(commune.problems.time){
+          commune.problems.time.count = commune.problems.time.length
+          commune.problems.time.short = "TIME: "+commune.problems.time.join(", ")
+        }
+      }
+
+      // flag warnings for keywords before first match
+      function flagKeywordsStartMatches(commune){
+        let hyStartIndex = _.min(commune.hab_year.map(hy=>hy.index))
+        let textStart = commune.text.substr(0,hyStartIndex)
+        let keywordMatch = textStart.match(regexAcceptedUnits)
+        if(keywordMatch){
+          commune.warnings.keyword = {
+            keyword: keywordMatch[0],
+            short: "KEYWORD: "+keywordMatch[0]
+          }
+        }
+      }
+
+      // flag warnings for numbers inbetween first and last match
+      function flagNumberBetween(commune){
+        let indices = commune.hab_year.map(hy=>hy.index)
+        let hyStartIndex = _.min(indices)
+        let hyEndIndex = _.max(indices)
+        let popText = commune.text.substr(hyStartIndex,hyEndIndex-hyStartIndex)
+        commune.hab_year.forEach(hy=>{
+          if(!hy.original_text){
+            cl("hy.original_text FALSY, hy=",hy)
+          }
+          popText = popText.replace(new RegExp(escapeRegExp(hy.original_text)),"XXX")
+        })
+        let popNb = popText.match(/\d+/)
+        if(popNb){
+          commune.warnings.popNb = {
+            popText: popText,
+            popNb: popNb[0],
+            short: "POP NB: "+popNb[0]
+          }
+        }
+      }
+
+      // flag warnings for numbers inbetween first and last match
+      function flagIsTG(commune){
+        if(isTG(commune)){
+          commune.problems.TG = {
+            short:"THURGAU!"
+          }
+        }
+      }
+
+      let flagRaisers = [
+        flagUnit,
+        flagTime,
+        flagKeywordsStartMatches,
+        flagNumberBetween,
+        flagIsTG
+      ]
+
+      function download_file(filename, text) {
+        var element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+        element.setAttribute('download', filename);
+
+        element.style.display = 'none';
+        document.body.appendChild(element);
+
+        element.click();
+
+        document.body.removeChild(element);
+      }
+
+      String.prototype.matchAll = function(regexp) {
+        let matches = [];
+        this.replace(regexp, function() {
+          let arr = ([]).slice.call(arguments, 0);
+          let extras = arr.splice(-2);
+          arr.index = extras[0];
+          arr.input = extras[1];
+          matches.push(arr);
+        });
+        return matches.length ? matches : null;
+      };
+
+      Array.prototype.unique = function() {
+        return Array.from(new Set(this))
+      };
+      Array.prototype.contains = function(elem){
+        return this.findIndex(x=>x==elem)!=-1
+      }
+
+      function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+      }
+
+    </script>
+    
+  
+
+
+
+  </body>
+</html>

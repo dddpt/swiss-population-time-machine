@@ -1,0 +1,16 @@
+
+
+#original-text{
+  height: 150px;
+  overflow: scroll;
+}
+
+.btn{
+  margin-right:5px;
+}
+
+#active-commune-problems div{
+  padding: 10px;
+  border-radius:5px;
+  margin-right:10px;
+}
