@@ -113,5 +113,12 @@ Stohr, Christian
 http://www.chronologie-jurassienne.ch/fr/Accueil.html#
 
 
+GEOVISTORY:
+https://kleiolab.ch/
+https://tube.switch.ch/cast/videos/5f05fea2-25b2-4edb-8b58-ae4c02cf5ca1
+https://www.youtube.com/watch?v=f9m72IACk8o
+http://histhub.net/
+https://www.businessparc.ch/de/blog/business-parc-startup-story-kleiolab-juni-2017/
+
 
 
