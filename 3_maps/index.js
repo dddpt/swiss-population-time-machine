@@ -8,8 +8,8 @@ Declaring global variables
 *****/
 
 // Storing size of the browser viewport
-let windowHeight = $(window).height();  // returns height of browser viewport
-let windowWidth = $(window).width();  // returns width of browser viewport
+// let windowHeight = $(window).height();  // returns height of browser viewport
+// let windowWidth = $(window).width();  // returns width of browser viewport
 
 
 // Map
@@ -18,22 +18,22 @@ let map;
 let tooltipMap;
 
 // Array of 0 to initialize correct number of dots for scatterplot
-let dataGraph = [0,0,0,0,0,0,0,0,0,0];
+// let dataGraph = [0,0,0,0,0,0,0,0,0,0];
 // Boolean to check if graph has already been initialized
-let graphInitialized = false;
+// let graphInitialized = false;
 
 // Correspondance table for slider values, buffer label in meters, buffer sizes in pixel and pop values for each
-let bufferVal = []; // initialized empty
-for(i = 1; i <= 10; i++){
-    bufferVal.push({"sliderVal": i, "buffer": `${i*100}m`, "bufferPx": i*15, "pop":`pop${i*100}m`});
-}
+// let bufferVal = []; // initialized empty
+// for(i = 1; i <= 10; i++){
+    // bufferVal.push({"sliderVal": i, "buffer": `${i*100}m`, "bufferPx": i*15, "pop":`pop${i*100}m`});
+// }
 
 /*****
 Initializing the whole script of the page
 *****/
 APP.main = function(){
     APP.initMap();
-    APP.sliderevent();
+    // APP.sliderevent();
 };
 
 /*****
@@ -41,7 +41,7 @@ Initializing map - leaflet with cartodb basemap and tooltip ready
 *****/
 APP.initMap = function(){
     // Initiaize the map - definig parameters and adding cartodb basemap
-    map = new L.map("map", {center: [46.515228504114376, 6.629819869995117], zoom: 14, minZoom: 10, maxZoom: 15, maxBounds: ([[46.128688, 5.971754],[47.121474, 7.313116]])});
+    map = new L.map("map", {center: [	47,7.5], zoom: 8, minZoom: 7, maxZoom: 20, maxBounds: ([[45.5, 5.5],[48, 12]])});
     let cartodb = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy;<a href="https://carto.com/attribution">CARTO</a>'
     });
@@ -50,10 +50,10 @@ APP.initMap = function(){
     cartodb.addTo(map);
 
     // Calling metho to create heatmap overlay
-    APP.makeHeatMap();
+    // APP.makeHeatMap();
     // Calling method to create - has to wait for the map to be created
     setTimeout(function(){
-        APP.makePtStops();
+        APP.makeCommunes();
     }, 250);
 
     // Getting tooltip ready for showing data
@@ -65,115 +65,118 @@ APP.initMap = function(){
 /*****
 Creating heatmap overlay based on the populated hectares
 *****/
-APP.makeHeatMap = function(){
-    // Empty array
-    let heathect = [];
-    // Loading population datas
-    d3.csv("data/hectpop_xy4.csv", function(data) {
-        // Formatting data for heatLayer function
-        for(i = 0; i < data.length ; i++){
-            heathect.push([]);
-            heathect[i][0] = data[i].Y;
-            heathect[i][1] = data[i].X;
-            heathect[i][2] = data[i].B14BTOT;
-        }
-
-        // Adding the heatmap layer to the map - radius and max parameters optimized to get readable map through whole zoom range
-        let heatmap = L.heatLayer(heathect, {radius: 30, max: 500}).addTo(map);
-        // Calling method to opacity of heatmap
-        APP.changeOpacity();
-    })
-
-    // Declaring legend to be place over the map
-    var legend = L.control({position: 'bottomright'});
-
-    legend.onAdd = function (map) {
-        // Creating div for legend
-        let div = L.DomUtil.create('div', 'info legend');
-
-        // Inserting HTML table for custom gradient color and labels
-        div.innerHTML = 'POPULATION <table> <tbody> <tr> <td> <canvas id="myCanvas" width="20" height="75" style="border:1px solid #d3d3d3;opacity:0.7"> </canvas> </td> <td> &nbsp; Elevée </br> </br> </br> </br> &nbsp; Faible </td> </tr> </tbody> </table>';
-        return div;
-    };
-
-    // Adding legend to the map
-    legend.addTo(map);
-
-    // Calling method for coloring legend
-    APP.colorLegend();
-};
+// APP.makeHeatMap = function(){
+//     // Empty array
+//     let heathect = [];
+//     // Loading population datas
+//     d3.csv("PLZO_CSV_WGS84.csv", function(data) {
+//         // Formatting data for heatLayer function
+//         for(i = 0; i < data.length ; i++){
+//             heathect.push([]);
+//             heathect[i][0] = data[i].Y;
+//             heathect[i][1] = data[i].X;
+//             heathect[i][2] = data[i].B14BTOT;
+//         }
+//
+//         // Adding the heatmap layer to the map - radius and max parameters optimized to get readable map through whole zoom range
+//         let heatmap = L.heatLayer(heathect, {radius: 30, max: 500}).addTo(map);
+//         // Calling method to opacity of heatmap
+//         APP.changeOpacity();
+//     })
+//
+//     // Declaring legend to be place over the map
+//     var legend = L.control({position: 'bottomright'});
+//
+//     legend.onAdd = function (map) {
+//         // Creating div for legend
+//         let div = L.DomUtil.create('div', 'info legend');
+//
+//         // Inserting HTML table for custom gradient color and labels
+//         div.innerHTML = 'POPULATION <table> <tbody> <tr> <td> <canvas id="myCanvas" width="20" height="75" style="border:1px solid #d3d3d3;opacity:0.7"> </canvas> </td> <td> &nbsp; Elevée </br> </br> </br> </br> &nbsp; Faible </td> </tr> </tbody> </table>';
+//         return div;
+//     };
+//
+//     // Adding legend to the map
+//     // legend.addTo(map);
+//
+//     // Calling method for coloring legend
+//     // APP.colorLegend();
+// };
 
 /*****
 Coloring HTML part for the legend
 *****/
-APP.colorLegend = function(){
-    // Adding color gradient to the legend
-    var c = document.getElementById("myCanvas");
-    var ctx = c.getContext("2d");
-    var grd = ctx.createLinearGradient(0,0,0,75);
-
-    // Creating different stops and color gradient
-    grd.addColorStop(0, "red");
-    grd.addColorStop(0.25, "yellow");
-    grd.addColorStop(0.5, "lime");
-    grd.addColorStop(0.75, "cyan");
-    grd.addColorStop(1, "blue");
-
-    // Parameters for HTML color gradient
-    ctx.fillStyle = grd;
-    ctx.fillRect(0, 0, 256, 256);
-}
+// APP.colorLegend = function(){
+//     // Adding color gradient to the legend
+//     var c = document.getElementById("myCanvas");
+//     var ctx = c.getContext("2d");
+//     var grd = ctx.createLinearGradient(0,0,0,75);
+//
+//     // Creating different stops and color gradient
+//     grd.addColorStop(0, "red");
+//     grd.addColorStop(0.25, "yellow");
+//     grd.addColorStop(0.5, "lime");
+//     grd.addColorStop(0.75, "cyan");
+//     grd.addColorStop(1, "blue");
+//
+//     // Parameters for HTML color gradient
+//     ctx.fillStyle = grd;
+//     ctx.fillRect(0, 0, 256, 256);
+// }
 
 /*****
 Creating points for PT stops and adding them to the map
 *****/
-APP.makePtStops = function(){
+APP.makeCommunes = function(){
+    console.log("coucou");
     // Empty array to store
-    let ptStops = [];
+    let communes = [];
 
     // Creating the public transportation layer with leaflet d3 svg overlay according to correct projection
-    let ptsOverlay = L.d3SvgOverlay(function(sel,proj){
-
-        var ptsUpd = sel.selectAll('circle').data(ptStops);
-        ptsUpd.enter()
+    let communesOverlay = L.d3SvgOverlay(function(sel,proj){
+        console.log(communes);
+        var communesUpd = sel.selectAll('circle').data(communes);
+        communesUpd.enter()
         .append("circle")
         .attr('cx', function(d){return proj.latLngToLayerPoint(d.latLng).x;}) // projecting points
         .attr('cy', function(d){return proj.latLngToLayerPoint(d.latLng).y;}) // projecting points
         .attr('r', 6)
         .attr('fill', function(d){
+            return "blue"
             // different fill color according to transport type
-            if(d.MOYEN_TRAN.match('CheminFer')){
-                return "blue"
-            } else if(d.MOYEN_TRAN == 'Bus'){
-                return "lime"
-            } else {
-                return "turquoise"
-            }
+            // if(d.MOYEN_TRAN.match('CheminFer')){
+            //     return "blue"
+            // } else if(d.MOYEN_TRAN == 'Bus'){
+            //     return "lime"
+            // } else {
+            //     return "turquoise"
+            // }
         })
         .style('position', 'relative')
         .style('stroke','black')
         .attr('opacity', 0.5)
         .attr('class', function(d){
+            return "communesPop dot"
             // different class attribute according to transport type
-            if(d.MOYEN_TRAN.match('CheminFer')){
-                return "bigBuff dot"
-            } else if(d.MOYEN_TRAN == 'Bus'){
-                return "smallBuff dot"
-            } else {
-                return "midBuff dot"
-            }
+            // if(d.MOYEN_TRAN.match('CheminFer')){
+            //     return "bigBuff dot"
+            // } else if(d.MOYEN_TRAN == 'Bus'){
+            //     return "smallBuff dot"
+            // } else {
+            //     return "midBuff dot"
+            // }
         });
     });
 
     // Loading the public transportation datas
-    d3.csv("data/buffers.csv",function(data){
+    d3.csv("PLZO_CSV_WGS84.csv",function(data){
         // mapping data to get proper latLong values
-        ptStops = data.map(function(d){
+        communes = data.map(function(d){
             d.latLng = [+d.Y,+d.X];
             return d;
         });
         // Adding layer to the map
-        ptsOverlay.addTo(map);
+        communesOverlay.addTo(map);
 
     });
 
@@ -185,34 +188,35 @@ APP.makePtStops = function(){
             d3.select(this)
             .transition()
             .duration(100)
-            .attr('r', function(d){
-                // For each type of buffer, get the pixel size in the correspondance table bufferVal
-                if(d.MOYEN_TRAN.match('CheminFer')){
-                    return bufferVal[$('#slider1').val()-1].bufferPx;
-                } else if(d.MOYEN_TRAN == 'Bus'){
-                    return bufferVal[$('#slider3').val()-1].bufferPx;
-                } else {
-                    return bufferVal[$('#slider2').val()-1].bufferPx;
-                }
+            .attr('r', function(d){ return 6
+                // // For each type of buffer, get the pixel size in the correspondance table bufferVal
+                // if(d.MOYEN_TRAN.match('CheminFer')){
+                //     return bufferVal[$('#slider1').val()-1].bufferPx;
+                // } else if(d.MOYEN_TRAN == 'Bus'){
+                //     return bufferVal[$('#slider3').val()-1].bufferPx;
+                // } else {
+                //     return bufferVal[$('#slider2').val()-1].bufferPx;
+                // }
             });
             // Showing value of buffer in the tooltip
             tooltipMap.html(function(){
                 // For each type of buffer, get the population value in the correspondance table bufferVal
                 let pop = "";
-                if(d.MOYEN_TRAN.match('CheminFer')){
-                    pop = d[bufferVal[$('#slider1').val()-1].pop];
-                } else if(d.MOYEN_TRAN == 'Bus'){
-                    pop = d[bufferVal[$('#slider3').val()-1].pop];
-                } else {
-                    pop = d[bufferVal[$('#slider2').val()-1].pop];
-                }
+                // if(d.MOYEN_TRAN.match('CheminFer')){
+                //     pop = d[bufferVal[$('#slider1').val()-1].pop];
+                // } else if(d.MOYEN_TRAN == 'Bus'){
+                //     pop = d[bufferVal[$('#slider3').val()-1].pop];
+                // } else {
+                //     pop = d[bufferVal[$('#slider2').val()-1].pop];
+                // }
                 // Replace unknown values with 0
                 if(pop == "NA"){
                     pop = 0;
                 }
                 // Return actual innerHTML text
-                return `${d.NOM} </br>
-                Population desservie : ${pop}`;
+                // return "hello";
+                return `${d.Ortschaftsname}`
+                // Pop : ${d.X}`;
             })
             .transition()
             .duration(50)
@@ -248,7 +252,7 @@ APP.makePtStops = function(){
             .duration(200)
             .style('opacity', 0);
         });
-    }, 1000);
+    }, 500);
 };
 
 /*****
