@@ -41,7 +41,7 @@ Initializing map - leaflet with cartodb basemap and tooltip ready
 *****/
 APP.initMap = function(){
     // Initiaize the map - definig parameters and adding cartodb basemap
-    map = new L.map("map", {center: [	47,7.5], zoom: 8, minZoom: 7, maxZoom: 20, maxBounds: ([[45.5, 5.5],[48, 12]])});
+    map = new L.map("map", {center: [	47,7.5], zoom: 14, minZoom: 7, maxZoom: 20, maxBounds: ([[45.5, 5.5],[48, 12]])});
     let cartodb = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy;<a href="https://carto.com/attribution">CARTO</a>'
     });
