@@ -1,4 +1,4 @@
-// TPVD - Nicolas Vallotton & Lucas Martinez - Juillet 2017
+// SPTM - Didier Dupertuis & Nicolas Vallotton - Avril 2019
 
 // Creating APP object for storing all Methods
 APP = {};
@@ -8,8 +8,8 @@ Declaring global variables
 *****/
 
 // Storing size of the browser viewport
-// let windowHeight = $(window).height();  // returns height of browser viewport
-// let windowWidth = $(window).width();  // returns width of browser viewport
+let windowHeight = $(window).height();  // returns height of browser viewport
+let windowWidth = $(window).width();  // returns width of browser viewport
 
 
 // Map
@@ -18,9 +18,9 @@ let map;
 let tooltipMap;
 
 // Array of 0 to initialize correct number of dots for scatterplot
-// let dataGraph = [0,0,0,0,0,0,0,0,0,0];
+let dataGraph = [0,0,0,0,0,0,0,0,0,0];
 // Boolean to check if graph has already been initialized
-// let graphInitialized = false;
+let graphInitialized = false;
 
 // Correspondance table for slider values, buffer label in meters, buffer sizes in pixel and pop values for each
 // let bufferVal = []; // initialized empty
@@ -41,9 +41,10 @@ Initializing map - leaflet with cartodb basemap and tooltip ready
 *****/
 APP.initMap = function(){
     // Initiaize the map - definig parameters and adding cartodb basemap
-    map = new L.map("map", {center: [	47,7.5], zoom: 14, minZoom: 7, maxZoom: 20, maxBounds: ([[45.5, 5.5],[48, 12]])});
-    let cartodb = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy;<a href="https://carto.com/attribution">CARTO</a>'
+    map = new L.map("map", {center: [	47,7.5], zoom: 9, minZoom: 7, maxZoom: 20, maxBounds: ([[45.5, 5.5],[48, 12]])});
+    let cartodb = L.tileLayer('https://api.mapbox.com/styles/v1/nvallott/cjcw1ex6i0zs92smn584yavkn/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibnZhbGxvdHQiLCJhIjoiY2pjdzFkM2diMWFrMzJxcW80eTdnNDhnNCJ9.O853joFyvgOZv7y9IJAnlA', {
+    // let cartodb = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
+        // attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy;<a href="https://carto.com/attribution">CARTO</a>'
     });
 
     // Add the cartodb layer to the map
@@ -54,7 +55,7 @@ APP.initMap = function(){
     // Calling method to create - has to wait for the map to be created
     setTimeout(function(){
         APP.makeCommunes();
-    }, 250);
+    }, 50);
 
     // Getting tooltip ready for showing data
     tooltipMap = d3.select('#map')
@@ -140,8 +141,9 @@ APP.makeCommunes = function(){
         .append("circle")
         .attr('cx', function(d){return proj.latLngToLayerPoint(d.latLng).x;}) // projecting points
         .attr('cy', function(d){return proj.latLngToLayerPoint(d.latLng).y;}) // projecting points
-        .attr('r', 6)
+        .attr('r', 3)
         .attr('fill', function(d){
+          console.log("heho");
             return "blue"
             // different fill color according to transport type
             // if(d.MOYEN_TRAN.match('CheminFer')){
@@ -153,8 +155,8 @@ APP.makeCommunes = function(){
             // }
         })
         .style('position', 'relative')
-        .style('stroke','black')
-        .attr('opacity', 0.5)
+        // .style('stroke','black')
+        .attr('opacity', .6)
         .attr('class', function(d){
             return "communesPop dot"
             // different class attribute according to transport type
@@ -201,7 +203,7 @@ APP.makeCommunes = function(){
             // Showing value of buffer in the tooltip
             tooltipMap.html(function(){
                 // For each type of buffer, get the population value in the correspondance table bufferVal
-                let pop = "";
+                // let pop = "";
                 // if(d.MOYEN_TRAN.match('CheminFer')){
                 //     pop = d[bufferVal[$('#slider1').val()-1].pop];
                 // } else if(d.MOYEN_TRAN == 'Bus'){
@@ -210,9 +212,9 @@ APP.makeCommunes = function(){
                 //     pop = d[bufferVal[$('#slider2').val()-1].pop];
                 // }
                 // Replace unknown values with 0
-                if(pop == "NA"){
-                    pop = 0;
-                }
+                // if(pop == "NA"){
+                //     pop = 0;
+                // }
                 // Return actual innerHTML text
                 // return "hello";
                 return `${d.Ortschaftsname}`
@@ -228,10 +230,10 @@ APP.makeCommunes = function(){
         .on('click', function(d){
             $('#graphLegend').html(function(){
                 return `<table width="100%">
-                <tr id="arret"> <td> </td> <td>  ${d.NOM} </td> <td> </td> </tr>
+                <tr id="arret"> <td> </td> <td>  ${d.Ortschaftsname} </td> <td> </td> </tr>
                 </table>
                 <table width="100%">
-                <tr> <td> Commune : ${d.NOM_COMMUN} </td> <td> &nbsp; </td> <td> Altitude : ${d.ALTITUDE} </td> </tr>
+                <tr> <td> Canton : ${d.Kanton} </td> <td> &nbsp; </td> <td> Numéro OFS : ${d.BFS_Nr} </td> </tr>
                 </table>`;
             })
             // If the graph has been launched once, update it - Else, initialize it
@@ -247,20 +249,20 @@ APP.makeCommunes = function(){
             d3.select(this)
             .transition()
             .duration(200)
-            .attr('r', 6);
+            .attr('r', 3);
             tooltipMap.transition()
             .duration(200)
             .style('opacity', 0);
         });
-    }, 500);
+    }, 100);
 };
 
 /*****
 Changing heatmap opacity for better readability
 *****/
-APP.changeOpacity = function(){
-    d3.selectAll('.leaflet-heatmap-layer').style('opacity',0.4);
-};
+// APP.changeOpacity = function(){
+//     d3.selectAll('.leaflet-heatmap-layer').style('opacity',0.4);
+// };
 
 /*****
 Updating innerHTML of buffer size values according to slider value using conversion table
@@ -268,8 +270,8 @@ Updating innerHTML of buffer size values according to slider value using convers
 APP.sliderevent = function(){
     $('.slidBuffer').change(function(){
         $('#slider1_val').html(bufferVal[$('#slider1').val()-1].buffer);
-        $('#slider2_val').html(bufferVal[$('#slider2').val()-1].buffer);
-        $('#slider3_val').html(bufferVal[$('#slider3').val()-1].buffer);
+        // $('#slider2_val').html(bufferVal[$('#slider2').val()-1].buffer);
+        // $('#slider3_val').html(bufferVal[$('#slider3').val()-1].buffer);
     });
 }
 
@@ -434,7 +436,7 @@ APP.updateGraph = function(data) {
         let cx = d3.select(this).attr('cx'); // To get appropriate coordinates for tooltip
         let cy = d3.select(this).attr('cy'); // To get appropriate coordinates for tooltip
         tooltipGraph.html(function(){
-            return `${d.pop} habitants desservis <br> pour ${d.size}m`;
+            return `${d.pop} population <br> pour ${d.size}m`;
         })
         .style('left', `${cx}px`)
         .style('top', `${cy}px`);

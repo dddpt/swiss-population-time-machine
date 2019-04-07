@@ -1,4 +1,4 @@
-Ortschaftsname,PLZ,Zusatzziffer,Gemeindename,BFS-Nr,Kantonsk�rzel,X,Y,Sprache
+Ortschaftsname,PLZ,Zusatzziffer,Gemeindename,BFS_Nr,Kanton,X,Y,Sprache
 Aeugst am Albis,8914,0,Aeugst am Albis,1,ZH,8.488,47.267,de
 Aeugstertal,8914,2,Aeugst am Albis,1,ZH,8.494,47.283,de
 Zwillikon,8909,0,Affoltern am Albis,2,ZH,8.431,47.288,de
