@@ -12,6 +12,14 @@ https://github.com/mfilippo/d3-mapbox-minimal
 # Maps data
 ====================================
 
+COOL OLD MAPS:
+https://www.oldmapsonline.org/map/unibern/001008248
+https://www.e-rara.ch/zut/content/zoom/7246433
+https://www.e-rara.ch/zut/content/zoom/6484274
+
+maptiler:
+https://www.maptiler.com/team/
+
 Topographic map of CH
 https://github.com/interactivethings/swiss-maps
 
