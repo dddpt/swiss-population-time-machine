@@ -1,7 +1,9 @@
 // SPTM - Didier Dupertuis & Nicolas Vallotton - Avril 2019
 
 // Creating APP object for storing all Methods
-APP = {};
+APP = {
+  currentYear: 1450
+};
 
 /*****
 Declaring global variables
@@ -36,7 +38,7 @@ Initializing the whole script of the page
 *****/
 APP.main = function(){
     APP.initMap();
-    // APP.sliderevent();
+    APP.sliderevent();
 };
 
 /*****
@@ -56,7 +58,6 @@ APP.initMap = function(){
     // Calling metho to create heatmap overlay
     // APP.makeHeatMap();
     // Calling method to create - has to wait for the map to be created
-    
     APP.makeCommunes();
     
     // Getting tooltip ready for showing data
@@ -271,9 +272,9 @@ Updating innerHTML of buffer size values according to slider value using convers
 *****/
 APP.sliderevent = function(){
     $('.slidBuffer').change(function(){
-        $('#slider1_val').html(bufferVal[$('#slider1').val()-1].buffer);
-        // $('#slider2_val').html(bufferVal[$('#slider2').val()-1].buffer);
-        // $('#slider3_val').html(bufferVal[$('#slider3').val()-1].buffer);
+        //$('#slider1_val').html(bufferVal[$('#slider1').val()-1].buffer);
+        cl("$('#slider1').val()")
+        cl($('#slider1').val())
     });
 }
 
