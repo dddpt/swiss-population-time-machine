@@ -46,7 +46,7 @@ Initializing map - leaflet with cartodb basemap and tooltip ready
 *****/
 APP.initMap = function(){
     // Initiaize the map - definig parameters and adding cartodb basemap
-    map = new L.map("map", {center: [	47,7.5], zoom: 9, minZoom: 7, maxZoom: 20, maxBounds: ([[45.5, 5.5],[48, 12]])});
+    map = new L.map("map", {center: [	47,7.5], zoom: 9, minZoom: 7, maxZoom: 20, maxBounds: ([[44.5, 4.5],[49, 12]])});
     let cartodb = L.tileLayer('https://api.mapbox.com/styles/v1/nvallott/cjcw1ex6i0zs92smn584yavkn/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibnZhbGxvdHQiLCJhIjoiY2pjdzFkM2diMWFrMzJxcW80eTdnNDhnNCJ9.O853joFyvgOZv7y9IJAnlA', {
     // let cartodb = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
         // attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy;<a href="https://carto.com/attribution">CARTO</a>'
@@ -64,6 +64,7 @@ APP.initMap = function(){
     tooltipMap = d3.select('#map')
     .append('div')
     .attr('class', 'tooltip');
+
 };
 
 /*****
@@ -131,7 +132,7 @@ Coloring HTML part for the legend
 /*****
 Creating points for PT stops and adding them to the map
 *****/
-APP.makeCommunes = function(){
+APP.makeCommunes = async function(){
     console.log("coucou");
     // Empty array to store
     let communes = [];
@@ -174,7 +175,7 @@ APP.makeCommunes = function(){
     });
 
     // Loading the public transportation datas
-    d3.dsv(";","communes_geo.csv", function(commune){
+    await d3.dsv(";","communes_geo.csv", function(commune){
       commune.hab_year = JSON.parse(commune.hab_year.replace(/'/g,'"'))
       return commune
     }).then(function(data){
@@ -219,7 +220,7 @@ APP.makeCommunes = function(){
                 // }
                 // Return actual innerHTML text
                 // return "hello";
-                return `${d.Ortschaftsname}`
+                return `${d.name}`
                 // Pop : ${d.X}`;
             })
             .transition()
@@ -257,10 +258,19 @@ APP.makeCommunes = function(){
             .style('opacity', 0);
         });
     })
+
+
+    APP.updateMap()
 }
 
 APP.updateMap = function(){
-  
+  // display pop as it was in 1850 (if available)
+  d3.selectAll('.dot')
+      .attr("r",d=>{
+        let hy1850 = d.hab_year.filter(hy=>hy.year==1850)
+          let radius = hy1850.length>0? hy1850[0].pop: 300
+        return Math.sqrt(radius/50)
+      })
 };
 
 /*****
