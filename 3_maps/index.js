@@ -56,10 +56,9 @@ APP.initMap = function(){
     // Calling metho to create heatmap overlay
     // APP.makeHeatMap();
     // Calling method to create - has to wait for the map to be created
-    setTimeout(function(){
-        APP.makeCommunes();
-    }, 50);
-
+    
+    APP.makeCommunes();
+    
     // Getting tooltip ready for showing data
     tooltipMap = d3.select('#map')
     .append('div')
@@ -183,10 +182,6 @@ APP.makeCommunes = function(){
         // Adding layer to the map
         communesOverlay.addTo(map);
 
-    });
-
-    // Defining interaction events - has to wait for the data to be loaded
-    setTimeout(function(){
         d3.selectAll('.dot')
         // Changing buffer size according to selected values on mouseover + tooltip infos
         .on('mouseover',function(d){
@@ -257,7 +252,11 @@ APP.makeCommunes = function(){
             .duration(200)
             .style('opacity', 0);
         });
-    }, 100);
+    })
+}
+
+APP.updateMap = function(){
+  
 };
 
 /*****
