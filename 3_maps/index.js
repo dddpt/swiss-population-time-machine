@@ -174,7 +174,10 @@ APP.makeCommunes = function(){
     });
 
     // Loading the public transportation datas
-    d3.dsv(";","PLZO_CSV_WGS84.csv").then(function(data){
+    d3.dsv(";","communes_geo.csv", function(commune){
+      commune.hab_year = JSON.parse(commune.hab_year.replace(/'/g,'"'))
+      return commune
+    }).then(function(data){
         // mapping data to get proper latLong values
         communes = data.map(function(d){
             d.latLng = [+d.Y,+d.X];

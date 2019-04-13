@@ -1,4 +1,4 @@
-;year;pop;unit;name;canton_x;url;firstmention;notes;place;zipcode;zusatzziffer;commune;bfsnr;canton_y;east;north;language
+;year;pop;unit;name;canton_x;url;firstmention;notes;place;zipcode;zusatzziffer;commune;bfsnr;canton_y;X;Y;language
 0;1416;120;Haushalte;Château-d'Œx;VD;/Articles/002593/?language=de;1080;hab+foyer data!, unclear population count (with or without l'etivaz), ;Château-d'Oex;1660.0;0.0;Château-d'Oex;5841.0;VD;7.129;46.473;fr
 1;1764;1751;Einw;Château-d'Œx;VD;/Articles/002593/?language=de;1080;hab+foyer data!, unclear population count (with or without l'etivaz), ;Château-d'Oex;1660.0;0.0;Château-d'Oex;5841.0;VD;7.129;46.473;fr
 2;1803;2001;Einw;Château-d'Œx;VD;/Articles/002593/?language=de;1080;hab+foyer data!, unclear population count (with or without l'etivaz), ;Château-d'Oex;1660.0;0.0;Château-d'Oex;5841.0;VD;7.129;46.473;fr
