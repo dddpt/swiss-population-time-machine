@@ -7,6 +7,9 @@ APP = {};
 Declaring global variables
 *****/
 
+cl = console.log
+ct = console.table
+
 // Storing size of the browser viewport
 let windowHeight = $(window).height();  // returns height of browser viewport
 let windowWidth = $(window).width();  // returns width of browser viewport
@@ -171,7 +174,7 @@ APP.makeCommunes = function(){
     });
 
     // Loading the public transportation datas
-    d3.csv("PLZO_CSV_WGS84.csv",function(data){
+    d3.csv("PLZO_CSV_WGS84.csv").then(function(data){
         // mapping data to get proper latLong values
         communes = data.map(function(d){
             d.latLng = [+d.Y,+d.X];
@@ -369,17 +372,17 @@ APP.updateGraph = function(data) {
     })
 
     // Setting up X scale and axis
-    xScale = d3.scale.linear().range([0,wGraph]).domain([0,1000]);
-    xAxis = d3.svg.axis().scale(xScale).orient('bottom');
+    xScale = d3.scaleLinear().range([0,wGraph]).domain([0,1000]);
+    xAxis = d3.axisBottom().scale(xScale);
 
     // Setting up Y scale and axis
     let yMin = d3.min(dataGraph, function(d){return d.pop});
     let yMax = d3.max(dataGraph, function(d){return d.pop})
-    yScale = d3.scale.linear().range([hGraph,0]).domain([yMin,yMax]);
-    yAxis = d3.svg.axis().scale(yScale).orient('left');
+    yScale = d3.scaleLinear().range([hGraph,0]).domain([yMin,yMax]);
+    yAxis = d3.axisLeft().scale(yScale);
 
     // Declare new svg line with new coordinates
-    let line = d3.svg.line()
+    let line = d3.line()
     .x(function(d){
         return xScale(d.size);
     })
