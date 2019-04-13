@@ -174,7 +174,7 @@ APP.makeCommunes = function(){
     });
 
     // Loading the public transportation datas
-    d3.csv("PLZO_CSV_WGS84.csv").then(function(data){
+    d3.dsv(";","PLZO_CSV_WGS84.csv").then(function(data){
         // mapping data to get proper latLong values
         communes = data.map(function(d){
             d.latLng = [+d.Y,+d.X];
@@ -275,6 +275,8 @@ APP.sliderevent = function(){
         //$('#slider1_val').html(bufferVal[$('#slider1').val()-1].buffer);
         cl("$('#slider1').val()")
         cl($('#slider1').val())
+        APP.currentYear = $('#slider1').val()
+        //APP.updateMap()
     });
 }
 
