@@ -8,6 +8,10 @@ https://github.com/roubaka/TPVD
 mapbox-minimal example
 https://github.com/mfilippo/d3-mapbox-minimal
 
+interpolate population values:
+https://github.com/dmytropaduchak/simple-interpolation
+https://github.com/pelias/line-interpolate-points
+
 
 # Maps data
 ====================================

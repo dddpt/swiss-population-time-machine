@@ -147,7 +147,6 @@ APP.makeCommunes = async function(){
         .attr('cy', function(d){return proj.latLngToLayerPoint(d.latLng).y;}) // projecting points
         .attr('r', 3)
         .attr('fill', function(d){
-          console.log("heho");
             return "blue"
             // different fill color according to transport type
             // if(d.MOYEN_TRAN.match('CheminFer')){
@@ -177,6 +176,9 @@ APP.makeCommunes = async function(){
     // Loading the public transportation datas
     await d3.dsv(";","communes_geo.csv", function(commune){
       commune.hab_year = JSON.parse(commune.hab_year.replace(/'/g,'"'))
+      // prepare interpolation:
+      // points = [{x:1,y:8},{x:3,y:3},{x:9,y:33},{x:19,y:11},{x:21,y:2},{x:33,y:12}]
+      // interpolation.single(points)({x:4})
       return commune
     }).then(function(data){
         // mapping data to get proper latLong values
