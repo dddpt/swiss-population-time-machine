@@ -477,3 +477,23 @@ APP.updateGraph = function(data) {
         $(this).text(legendText);
     });
 }
+
+/** Returns an interpolator from the given dataPoints
+ * @param {*} dataPoints an array of length 2 arrays, each sub-array is a coordinate with sub-array[0]=x, sub-array[1]=y
+ * @returns interpolate() a function taking a number which returns an interpolated value, or null if the given number is outside the range
+ */
+function interpolator(dataPoints){
+  dataPoints.sort((a,b)=>a[0]-b[0])
+  //cl("dataPoints",dataPoints)
+  return function interpolate(x){
+    let bi = dataPoints.findIndex(b=>b[0]>x)
+    //cl("bi: ",bi)
+    if(bi>0 && bi<=dataPoints.length){
+      let a = dataPoints[bi-1]
+      let b = dataPoints[bi]
+      //cl("a=",a,", b=",b, ", b[1]-a[1]=", b[1]-a[1], ", b[0]-a[0]=", b[0]-a[0], ", x-a[0]=", x-a[0])
+      return a[1]+ (b[1]-a[1])/(b[0]-a[0]) * (x-a[0])
+    }
+    return null
+  }
+}
