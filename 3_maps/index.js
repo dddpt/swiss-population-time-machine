@@ -2,7 +2,8 @@
 
 // Creating APP object for storing all Methods
 APP = {
-  currentYear: 1450
+  currentYear: 1850,
+  communes:[]
 };
 
 /*****
@@ -176,6 +177,8 @@ APP.makeCommunes = async function(){
     // Loading the public transportation datas
     await d3.dsv(";","communes_geo.csv", function(commune){
       commune.hab_year = JSON.parse(commune.hab_year.replace(/'/g,'"'))
+      commune.raw_hab_year = JSON.parse(commune.raw_hab_year.replace(/'/g,'"'))
+      commune.pop_interpolator = interpolator(commune.hab_year.map(hy=>[hy.year,hy.pop]))
       // prepare interpolation:
       // points = [{x:1,y:8},{x:3,y:3},{x:9,y:33},{x:19,y:11},{x:21,y:2},{x:33,y:12}]
       // interpolation.single(points)({x:4})
@@ -186,16 +189,19 @@ APP.makeCommunes = async function(){
             d.latLng = [+d.Y,+d.X];
             return d;
         });
+        APP.communes = communes
+
         // Adding layer to the map
         communesOverlay.addTo(map);
 
         d3.selectAll('.dot')
         // Changing buffer size according to selected values on mouseover + tooltip infos
-        .on('mouseover',function(d){
+        .on('mouseenter',function(d){
             d3.select(this)
             .transition()
             .duration(100)
-            .attr('r', function(d){ return 6
+            .attr('r', function(d){
+                return 1.3*d.circleSize
                 // // For each type of buffer, get the pixel size in the correspondance table bufferVal
                 // if(d.MOYEN_TRAN.match('CheminFer')){
                 //     return bufferVal[$('#slider1').val()-1].bufferPx;
@@ -254,7 +260,7 @@ APP.makeCommunes = async function(){
             d3.select(this)
             .transition()
             .duration(200)
-            .attr('r', 3);
+            .attr('r', d=> d.circleSize);
             tooltipMap.transition()
             .duration(200)
             .style('opacity', 0);
@@ -269,9 +275,10 @@ APP.updateMap = function(){
   // display pop as it was in 1850 (if available)
   d3.selectAll('.dot')
       .attr("r",d=>{
-        let hy1850 = d.hab_year.filter(hy=>hy.year==1850)
-          let radius = hy1850.length>0? hy1850[0].pop: 300
-        return Math.sqrt(radius/50)
+        //let hy1850 = d.hab_year.filter(hy=>hy.year==1850)
+        //let radius = hy1850.length>0? hy1850[0].pop: 300
+        d.circleSize = Math.sqrt(+d.pop_interpolator(APP.currentYear)/50)
+        return d.circleSize
       })
 };
 
@@ -291,7 +298,8 @@ APP.sliderevent = function(){
         cl("$('#slider1').val()")
         cl($('#slider1').val())
         APP.currentYear = $('#slider1').val()
-        //APP.updateMap()
+        $("#slider1_val").html(APP.currentYear)
+        APP.updateMap()
     });
 }
 
