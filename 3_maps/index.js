@@ -178,7 +178,7 @@ APP.makeCommunes = async function(){
     await d3.dsv(";","communes_geo.csv", function(commune){
       commune.hab_year = JSON.parse(commune.hab_year.replace(/'/g,'"'))
       commune.raw_hab_year = JSON.parse(commune.raw_hab_year.replace(/'/g,'"'))
-      commune.pop_interpolator = interpolator(commune.hab_year.map(hy=>[hy.year,hy.pop]))
+      commune.pop_interpolator = exponentialInterpolator(commune.hab_year.map(hy=>[hy.year,hy.pop]))
       // prepare interpolation:
       // points = [{x:1,y:8},{x:3,y:3},{x:9,y:33},{x:19,y:11},{x:21,y:2},{x:33,y:12}]
       // interpolation.single(points)({x:4})
@@ -486,9 +486,9 @@ APP.updateGraph = function(data) {
     });
 }
 
-/** Returns an interpolator from the given dataPoints
+/** Returns a linear interpolator from the given dataPoints
  * @param {*} dataPoints an array of length 2 arrays, each sub-array is a coordinate with sub-array[0]=x, sub-array[1]=y
- * @returns interpolate() a function taking a number which returns an interpolated value, or null if the given number is outside the range
+ * @returns interpolate(x) a function taking a value x and returning the linear interpolation of y at x, or null if x is outside the x range of dataPoints
  */
 function interpolator(dataPoints){
   dataPoints.sort((a,b)=>a[0]-b[0])
@@ -503,5 +503,16 @@ function interpolator(dataPoints){
       return a[1]+ (b[1]-a[1])/(b[0]-a[0]) * (x-a[0])
     }
     return null
+  }
+}
+/** Returns an explonential interpolator from the given dataPoints
+ * Useful to interpolate with growth rates
+ * @param {*} dataPoints an array of length 2 arrays, each sub-array is a coordinate with sub-array[0]=x, sub-array[1]=y
+ * @returns interpolate(x) a function taking a value x and returning the exponential interpolation of y at x, or null if x is outside the x range of dataPoints
+ */
+function exponentialInterpolator(dataPoints){
+  let linearInterpolator = interpolator(dataPoints.map(dp=>[dp[0],Math.log(dp[1])]))
+  return function(year){
+    return Math.exp(linearInterpolator(year))
   }
 }

@@ -4,3 +4,4 @@ venv/*
 *ipynb_checkpoint*
 *.json
 .oldgit/*
+*~lock*
