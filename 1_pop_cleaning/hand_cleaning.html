@@ -520,6 +520,13 @@
         saveCheckpoint()
         return commune
       }
+      function rereviewCommuneByName(reviewedCommunesName){
+        reviewedCommunesIndex = rereviewCommune(reviewedCommunes.findIndex( c=>c.name.match(reviewedCommunesName)))
+        let commune = reviewedCommunes.splice(reviewedCommunesIndex,1)[0]
+        communesToReview.splice(currentCommuneToReviewIndex,0,commune)
+        saveCheckpoint()
+        return commune
+      }
       function isNotReviewed(commune){
         let rcIndex = reviewedCommunes.findIndex(co=>co.name==commune.name)
         console.log("rcIndex = ",rcIndex)
