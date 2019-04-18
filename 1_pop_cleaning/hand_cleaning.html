@@ -43,6 +43,9 @@
       let activeCommune = {}
       let highlightedOriginalText = ""
 
+      let tabellePop = []
+      let tabelleYear = []
+
       let popDataOtextId =  hy => "pop-data-otext-"+hy.year+"-"+hy.pop
       let popDataRowId =  hy => "pop-data-row-"+hy.year+"-"+hy.pop
 
@@ -521,7 +524,7 @@
         return commune
       }
       function rereviewCommuneByName(reviewedCommunesName){
-        reviewedCommunesIndex = rereviewCommune(reviewedCommunes.findIndex( c=>c.name.match(reviewedCommunesName)))
+        let reviewedCommunesIndex = rereviewCommune(reviewedCommunes.findIndex( c=>c.name.match(reviewedCommunesName)))
         let commune = reviewedCommunes.splice(reviewedCommunesIndex,1)[0]
         communesToReview.splice(currentCommuneToReviewIndex,0,commune)
         saveCheckpoint()
@@ -587,9 +590,6 @@
       }
 
       /* ---------------- add daten-in-tabellen programmatically ---------------- */
-
-      let tabellePop = []
-      let tabelleYear = []
       function extractTabelleRow(string){
         return string.replace(/ /g,"").split("\t").map(p=>parseInt(p.replace(/\D/g,"")))
       }
