@@ -494,7 +494,7 @@ function interpolator(dataPoints){
   dataPoints.sort((a,b)=>a[0]-b[0])
   //cl("dataPoints",dataPoints)
   return function interpolate(x){
-    let bi = dataPoints.findIndex(b=>b[0]>x)
+    let bi = dataPoints.findIndex(b=>b[0]>=x)
     //cl("bi: ",bi)
     if(bi>0 && bi<=dataPoints.length){
       let a = dataPoints[bi-1]
