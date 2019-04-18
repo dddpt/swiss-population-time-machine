@@ -60,7 +60,7 @@ APP.initMap = function(){
     // APP.makeHeatMap();
     // Calling method to create - has to wait for the map to be created
     APP.makeCommunes();
-    
+
     // Getting tooltip ready for showing data
     tooltipMap = d3.select('#map')
     .append('div')
