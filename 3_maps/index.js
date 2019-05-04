@@ -1,32 +1,38 @@
+"use strict";
+
 // SPTM - Didier Dupertuis & Nicolas Vallotton - Avril 2019
 
 // Creating APP object for storing all Methods
-APP = {
+let APP = {
   currentYear: 1850,
-  communes:[]
+  // list of communes
+  communes:[],
+  graph:{
+    // Array of 0 to initialize correct number of dots for scatterplot
+    data:[],
+    // Boolean to check if graph has already been initialized
+    initialized: false,
+    // Max nb of communes to display on graph:
+    maxSize: 5,
+  }
 };
 
 /*****
 Declaring global variables
 *****/
 
-cl = console.log
-ct = console.table
+let cl = console.log
+let ct = console.table
 
 // Storing size of the browser viewport
 let windowHeight = $(window).height();  // returns height of browser viewport
 let windowWidth = $(window).width();  // returns width of browser viewport
-
 
 // Map
 let map;
 // Tooltip of the map
 let tooltipMap;
 
-// Array of 0 to initialize correct number of dots for scatterplot
-let dataGraph = [0,0,0,0,0,0,0,0,0,0];
-// Boolean to check if graph has already been initialized
-let graphInitialized = false;
 
 // Correspondance table for slider values, buffer label in meters, buffer sizes in pixel and pop values for each
 // let bufferVal = []; // initialized empty
@@ -248,10 +254,10 @@ APP.makeCommunes = async function(){
                 </table>`;
             })
             // If the graph has been launched once, update it - Else, initialize it
-            if(graphInitialized){
+            if(APP.graph.initialized){
                 APP.updateGraph(d);
             } else {
-                graphInitialized = true;
+                APP.graph.initialized = true;
                 APP.initGraph(d);
             }
         })
@@ -311,22 +317,22 @@ APP.initGraph = function(data){
     $('#tuto').remove();
 
     // Creating margins for the svg
-    margin = {top : 40, right : 40, bottom : 55, left : 52};
+    let margin = {top : 40, right : 40, bottom : 55, left : 52};
 
     // Setting dimensions of the svg and padding between each value of the barplot
-    wGraph = $('#graphPart').width() - margin.left - margin.right;
-    hGraph = 400 - margin.top - margin.bottom;
+    APP.graph.width = $('#graphPart').width() - margin.left - margin.right;
+    APP.graph.height = 400 - margin.top - margin.bottom;
 
     // Creating svg, appending attributes
-    svgGraph = d3.select("#graph")
+    APP.graph.svg = d3.select("#graph")
     .append("svg")
-    .attr("width", wGraph + margin.left + margin.right)
-    .attr("height", hGraph + margin.top + margin.bottom)
+    .attr("width", APP.graph.width + margin.left + margin.right)
+    .attr("height", APP.graph.height + margin.top + margin.bottom)
     .append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
 
     // Adding div tooltip
-    tooltipGraph = d3.select('#graph')
+    let tooltipGraph = d3.select('#graph')
     .append('div')
     .attr('class', 'tooltipGraph')
     .style('left', '0px')
@@ -334,43 +340,43 @@ APP.initGraph = function(data){
     .style('opacity',0);
 
     // Adding dots with radius 0px
-    svgGraph.selectAll('.point')
-    .data(dataGraph)
+    APP.graph.svg.selectAll('.point')
+    .data(APP.graph.data)
     .enter()
     .append('circle')
     .attr('class','point')
     .attr('cx', function(d){
         return 0;
     })
-    .attr('cy', hGraph)
+    .attr('cy', APP.graph.height)
     .attr('r',0)
     .style('fill', 'white');
 
     // Adding axis
-    svgGraph.append('g')
+    APP.graph.svg.append('g')
     .attr('class','xAxis')
-    .attr('transform', `translate(0,${hGraph})`);
+    .attr('transform', `translate(0,${APP.graph.height})`);
 
-    svgGraph.append('g')
+    APP.graph.svg.append('g')
     .attr('class', 'yAxis');
 
     // Adding axis labels
-    svgGraph.append("text")
+    APP.graph.svg.append("text")
     .attr('class', 'axisLabel')
     .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
     .attr("transform", "translate("+ (20) +","+(35)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
     .style('opacity', 0)
     .text("Population");
 
-    svgGraph.append("text")
+    APP.graph.svg.append("text")
     .attr('class', 'axisLabel')
     .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
-    .attr("transform", "translate("+ (wGraph-(75)) +","+(hGraph-(10))+")")  // centre below axis
+    .attr("transform", "translate("+ (APP.graph.width-(20)) +","+(APP.graph.height-(10))+")")  // centre below axis
     .style('opacity', 0)
-    .text("Zone tampon en mètres");
+    .text("Année");
 
     // Adding line
-    svgGraph.append('path')
+    APP.graph.svg.append('path')
     .attr('class','line')
     .style('stroke','none');
 
@@ -381,30 +387,24 @@ APP.initGraph = function(data){
 /*****
 Updating graph - put all dots in place according to new data, rescale axis and and translate line
 *****/
-APP.updateGraph = function(data) {
+APP.updateGraph = function(commune) {
 
-    // Reset datagraph as empty array
-    dataGraph = [];
-    // Formatting data to be used on scatterplot
-    for(i = 1; i <= 10; i++){
-        string = `pop${i*100}m`;
-        dataGraph.push({"size": i*100, "pop": +data[string]});
-    }
+    cl("APP.updateGraph() new commune: ",commune.name)
 
-    // Replacing falsey values (here NaN) with 0
-    dataGraph.forEach(function(a){
-        a.pop = a.pop || 0;
-    })
-
+    // insert commune at beginning of array and only keep the first APP.graph.maxSize elements 
+    APP.graph.data.unshift(commune)
+    APP.graph.data = APP.graph.data.filter((c,i)=> i<APP.graph.maxSize)
+    cl("APP.graph.data:")
+    ct(APP.graph.data)
+    
     // Setting up X scale and axis
-    xScale = d3.scaleLinear().range([0,wGraph]).domain([0,1000]);
-    xAxis = d3.axisBottom().scale(xScale);
+    let xScale = d3.scaleLinear().range([0,APP.graph.width]).domain([1200,2000]);
+    let xAxis = d3.axisBottom().scale(xScale);
 
     // Setting up Y scale and axis
-    let yMin = d3.min(dataGraph, function(d){return d.pop});
-    let yMax = d3.max(dataGraph, function(d){return d.pop})
-    yScale = d3.scaleLinear().range([hGraph,0]).domain([yMin,yMax]);
-    yAxis = d3.axisLeft().scale(yScale);
+    let yMax = d3.max(APP.graph.data.map(commune => commune.hab_year.map(hy =>hy.pop)).flat())
+    let yScale = d3.scaleLinear().range([APP.graph.height,0]).domain([0,1.1*yMax]);
+    let yAxis = d3.axisLeft().scale(yScale);
 
     // Declare new svg line with new coordinates
     let line = d3.line()
@@ -416,49 +416,45 @@ APP.updateGraph = function(data) {
     });
 
     // Rescale axis
-    svgGraph.select('.xAxis')
-    .transition()
-    .duration(1000)
-    .call(xAxis)
-    .attr('x', wGraph)
-    .attr('y', -3);;
+    APP.graph.svg.select('.xAxis')
+      .transition()
+      .duration(1000)
+      .call(xAxis)
+      .attr('x', APP.graph.width)
+      .attr('y', -3);
 
-    svgGraph.select('.yAxis')
-    .transition()
-    .duration(1000)
-    .call(yAxis)
-    .attr('y',6)
-    .attr('dy', '.71em');
+    APP.graph.svg.select('.yAxis')
+      .transition()
+      .duration(1000)
+      .call(yAxis)
+      .attr('y',6)
+      .attr('dy', '.71em');
 
-    svgGraph.selectAll('.axisLabel')
+    APP.graph.svg.selectAll('.axisLabel')
     .style('opacity', 1);
 
     // Remap all dots according to new values
-    svgGraph.selectAll('.point')
-    .data(dataGraph)
-    .transition()
-    .duration(1000)
-    .attr('cx', function(d){
-        return xScale(d.size)
-    })
-    .attr('cy', function(d){
-        return yScale(d.pop)
-    })
-    .attr('r',6)
-    .style('opacity', 0.7)
-    .style('fill','red');
+    APP.graph.svg.selectAll('.point')
+      .data(APP.graph.data)
+      .transition()
+      .duration(1000)
+      .attr('cx', d => xScale(d.size))
+      .attr('cy', d => yScale(d.pop))
+      .attr('r',6)
+      .style('opacity', 0.7)
+      .style('fill','red');
 
     // Translate line according to new coordinates
-    svgGraph.select('.line')
+    APP.graph.svg.select('.line')
     .transition()
     .duration(1000)
-    .attr('d',line(dataGraph))
+    .attr('d',line(APP.graph.data))
     .style('stroke','black')
     .style('stroke-width',0.7)
     .style('fill','none');
 
     // Interaction events on graphic
-    svgGraph.selectAll('.point')
+    APP.graph.svg.selectAll('.point')
     // Adding information on specific point to the tooltip on mouseover
     .on('mouseover', function(d){
         let cx = d3.select(this).attr('cx'); // To get appropriate coordinates for tooltip
