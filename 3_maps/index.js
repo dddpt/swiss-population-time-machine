@@ -339,18 +339,20 @@ APP.initGraph = function(data){
     .style('top', '0px')
     .style('opacity',0);
 
+    
     // Adding dots with radius 0px
     APP.graph.svg.selectAll('.point')
-    .data(APP.graph.data)
+    .data([1,2,3,4,5])
     .enter()
     .append('circle')
     .attr('class','point')
     .attr('cx', function(d){
-        return 0;
+        return d;
     })
     .attr('cy', APP.graph.height)
     .attr('r',0)
     .style('fill', 'white');
+    
 
     // Adding axis
     APP.graph.svg.append('g')
@@ -375,10 +377,6 @@ APP.initGraph = function(data){
     .style('opacity', 0)
     .text("Année");
 
-    // Adding line
-    APP.graph.svg.append('path')
-    .attr('class','line')
-    .style('stroke','none');
 
     // Calling method to update graph according to current data
     APP.updateGraph(data);
@@ -387,12 +385,12 @@ APP.initGraph = function(data){
 /*****
 Updating graph - put all dots in place according to new data, rescale axis and and translate line
 *****/
-APP.updateGraph = function(commune) {
+APP.updateGraph = function(newCommune) {
 
-    cl("APP.updateGraph() new commune: ",commune.name)
+    cl("APP.updateGraph() new commune: ",newCommune.name)
 
-    // insert commune at beginning of array and only keep the first APP.graph.maxSize elements 
-    APP.graph.data.unshift(commune)
+    // insert newCommune at beginning of array and only keep the first APP.graph.maxSize elements 
+    APP.graph.data.unshift(newCommune)
     APP.graph.data = APP.graph.data.filter((c,i)=> i<APP.graph.maxSize)
     cl("APP.graph.data:")
     ct(APP.graph.data)
@@ -406,14 +404,14 @@ APP.updateGraph = function(commune) {
     let yScale = d3.scaleLinear().range([APP.graph.height,0]).domain([0,1.1*yMax]);
     let yAxis = d3.axisLeft().scale(yScale);
 
-    // Declare new svg line with new coordinates
+    /*// Declare new svg line with new coordinates
     let line = d3.line()
     .x(function(d){
         return xScale(d.size);
     })
     .y(function(d){
         return yScale(d.pop);
-    });
+    });*/
 
     // Rescale axis
     APP.graph.svg.select('.xAxis')
@@ -431,9 +429,57 @@ APP.updateGraph = function(commune) {
       .attr('dy', '.71em');
 
     APP.graph.svg.selectAll('.axisLabel')
-    .style('opacity', 1);
+      .style('opacity', 1);
 
-    // Remap all dots according to new values
+    // returns a function to draw a line (the newLine simply has y=0 all along)
+    let interpolatedLine = d3.line().curve(d3.curveLinear).x( hy=>xScale(hy.year) ).y( hy=> yScale(hy.pop) );
+    let newLine = d3.line().curve(d3.curveLinear).x( hy=>xScale(hy.year) ).y(0);
+    
+    // returns a class for points and lines of given commune
+    let pointsClass = commune => 'point-'+commune.name.replace(/\W/g,"-")
+    let lineClass = commune => 'line-'+commune.name.replace(/\W/g,"-")
+
+    APP.graph.data.forEach(commune=>{
+    
+      let hyPoints = APP.graph.svg.selectAll("."+pointsClass(commune))
+        .data(commune.hab_year)
+      
+      let hyPointsEnter = hyPoints.enter()
+        .append('circle')
+        .attr('class',pointsClass(commune))
+        .attr('cx', d=>xScale(d.year))
+        .attr('cy', APP.graph.height)
+        .attr('r',3)
+        .style('opacity', 0.7)
+        .style('fill','red');
+
+      hyPoints = hyPoints.merge(hyPointsEnter)
+        .transition(1000)
+        .attr('cx', d=>xScale(d.year))
+        .attr('cy', d=>yScale(d.pop))
+
+      // Translate line according to new coordinates
+      let hyLine = APP.graph.svg.select('.'+lineClass(commune))
+        .datum(commune.hab_year)
+      cl("commune.hab_year",commune.hab_year)
+      cl("hyLine",hyLine)
+      cl("hyLine.data()",hyLine.data())
+      
+      let hyLineEnter = hyLine.enter()
+        .append("path")
+        .classed(lineClass(commune),true)
+        .attr("d", newLine)
+        .style("stroke", "blue")
+        //.attr("clip-path", "url(#clipTemp)")
+        .attr("fill","none");
+      cl("hyLineEnter",hyLineEnter)
+      cl("hyLineEnter.data()",hyLineEnter.data())
+
+      hyLine = hyLine.merge(hyLineEnter)
+        .transition(1000)
+        .attr("d", interpolatedLine)
+    })
+    /*// Remap all dots according to new values
     APP.graph.svg.selectAll('.point')
       .data(APP.graph.data)
       .transition()
@@ -480,6 +526,7 @@ APP.updateGraph = function(commune) {
         let legendText = $(this).text().replace(',',"'");
         $(this).text(legendText);
     });
+    */
 }
 
 /** Returns a linear interpolator from the given dataPoints
@@ -501,7 +548,7 @@ function interpolator(dataPoints){
     return null
   }
 }
-/** Returns an explonential interpolator from the given dataPoints
+/** Returns an exponential interpolator from the given dataPoints
  * Useful to interpolate with growth rates
  * @param {*} dataPoints an array of length 2 arrays, each sub-array is a coordinate with sub-array[0]=x, sub-array[1]=y
  * @returns interpolate(x) a function taking a value x and returning the exponential interpolation of y at x, or null if x is outside the x range of dataPoints
