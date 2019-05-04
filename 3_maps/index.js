@@ -183,6 +183,7 @@ APP.makeCommunes = async function(){
     // Loading the public transportation datas
     await d3.dsv(";","communes_geo.csv", function(commune){
       commune.hab_year = JSON.parse(commune.hab_year.replace(/'/g,'"'))
+      commune.hab_year = commune.hab_year.sort((a,b)=>a.year-b.year)
       commune.raw_hab_year = JSON.parse(commune.raw_hab_year.replace(/'/g,'"'))
       commune.pop_interpolator = exponentialInterpolator(commune.hab_year.map(hy=>[hy.year,hy.pop]))
       // prepare interpolation:
@@ -433,7 +434,7 @@ APP.updateGraph = function(newCommune) {
 
     // returns a function to draw a line (the newLine simply has y=0 all along)
     let interpolatedLine = d3.line().curve(d3.curveLinear).x( hy=>xScale(hy.year) ).y( hy=> yScale(hy.pop) );
-    let newLine = d3.line().curve(d3.curveLinear).x( hy=>xScale(hy.year) ).y(0);
+    let newLine = d3.line().curve(d3.curveLinear).x( hy=>xScale(hy.year) ).y(yScale(0));
     
     // returns a class for points and lines of given commune
     let pointsClass = commune => 'point-'+commune.name.replace(/\W/g,"-")
@@ -448,7 +449,7 @@ APP.updateGraph = function(newCommune) {
         .append('circle')
         .attr('class',pointsClass(commune))
         .attr('cx', d=>xScale(d.year))
-        .attr('cy', APP.graph.height)
+        .attr('cy', yScale(0))
         .attr('r',3)
         .style('opacity', 0.7)
         .style('fill','red');
@@ -459,8 +460,8 @@ APP.updateGraph = function(newCommune) {
         .attr('cy', d=>yScale(d.pop))
 
       // Translate line according to new coordinates
-      let hyLine = APP.graph.svg.select('.'+lineClass(commune))
-        .datum(commune.hab_year)
+      let hyLine = APP.graph.svg.selectAll('.'+lineClass(commune))
+        .data([commune.hab_year])
       cl("commune.hab_year",commune.hab_year)
       cl("hyLine",hyLine)
       cl("hyLine.data()",hyLine.data())
@@ -473,7 +474,8 @@ APP.updateGraph = function(newCommune) {
         //.attr("clip-path", "url(#clipTemp)")
         .attr("fill","none");
       cl("hyLineEnter",hyLineEnter)
-      cl("hyLineEnter.data()",hyLineEnter.data())
+      cl("hyLineEnter.datum():")
+      ct(hyLineEnter.datum())
 
       hyLine = hyLine.merge(hyLineEnter)
         .transition(1000)
