@@ -340,21 +340,6 @@ APP.initGraph = function(data){
     .style('top', '0px')
     .style('opacity',0);
 
-    
-    // Adding dots with radius 0px
-    APP.graph.svg.selectAll('.point')
-    .data([1,2,3,4,5])
-    .enter()
-    .append('circle')
-    .attr('class','point')
-    .attr('cx', function(d){
-        return d;
-    })
-    .attr('cy', APP.graph.height)
-    .attr('r',0)
-    .style('fill', 'white');
-    
-
     // Adding axis
     APP.graph.svg.append('g')
     .attr('class','xAxis')
