@@ -13,7 +13,14 @@ let APP = {
     // Boolean to check if graph has already been initialized
     initialized: false,
     // Max nb of communes to display on graph:
-    maxSize: 5,
+    maxSize: 3,
+    // returns a class for points and lines of given commune
+    pointsClass: commune => 'point-'+commune.name.replace(/\W/g,"-"),
+    lineClass: commune => 'line-'+commune.name.replace(/\W/g,"-"),
+    counter:0,
+    // given a number returns
+    colorScale: commune => d3.interpolateSinebow((commune.graphIndex % APP.graph.maxSize)/APP.graph.maxSize),
+    transitionsDuration: 1000
   }
 };
 
@@ -186,6 +193,9 @@ APP.makeCommunes = async function(){
       commune.hab_year = commune.hab_year.sort((a,b)=>a.year-b.year)
       commune.raw_hab_year = JSON.parse(commune.raw_hab_year.replace(/'/g,'"'))
       commune.pop_interpolator = exponentialInterpolator(commune.hab_year.map(hy=>[hy.year,hy.pop]))
+      commune.canton = commune.canton_x
+      commune.canton_x = null
+      commune.canton_y = null
       // prepare interpolation:
       // points = [{x:1,y:8},{x:3,y:3},{x:9,y:33},{x:19,y:11},{x:21,y:2},{x:33,y:12}]
       // interpolation.single(points)({x:4})
@@ -248,10 +258,10 @@ APP.makeCommunes = async function(){
         .on('click', function(d){
             $('#graphLegend').html(function(){
                 return `<table width="100%">
-                <tr id="arret"> <td> </td> <td>  ${d.Ortschaftsname} </td> <td> </td> </tr>
+                <tr id="arret"> <td> </td> <td>  ${APP.currentYear} </td> <td> </td> </tr>
                 </table>
                 <table width="100%">
-                <tr> <td> Canton : ${d.Kanton} </td> <td> &nbsp; </td> <td> Numéro OFS : ${d.BFS_Nr} </td> </tr>
+                <tr> <td> Canton : ${d.canton} </td> <td> &nbsp; </td> <td> Numéro OFS : ${d.bfsnr} </td> </tr>
                 </table>`;
             })
             // If the graph has been launched once, update it - Else, initialize it
@@ -374,10 +384,10 @@ Updating graph - put all dots in place according to new data, rescale axis and a
 APP.updateGraph = function(newCommune) {
 
     cl("APP.updateGraph() new commune: ",newCommune.name)
+    newCommune.graphIndex = APP.graph.counter
 
-    // insert newCommune at beginning of array and only keep the first APP.graph.maxSize elements 
+    // insert newCommune at beginning of array 
     APP.graph.data.unshift(newCommune)
-    APP.graph.data = APP.graph.data.filter((c,i)=> i<APP.graph.maxSize)
     cl("APP.graph.data:")
     ct(APP.graph.data)
     
@@ -386,30 +396,21 @@ APP.updateGraph = function(newCommune) {
     let xAxis = d3.axisBottom().scale(xScale);
 
     // Setting up Y scale and axis
-    let yMax = d3.max(APP.graph.data.map(commune => commune.hab_year.map(hy =>hy.pop)).flat())
+    let yMax = d3.max(APP.graph.data.filter((c,i)=> i<APP.graph.maxSize).map(commune => commune.hab_year.map(hy =>hy.pop)).flat())
     let yScale = d3.scaleLinear().range([APP.graph.height,0]).domain([0,1.1*yMax]);
     let yAxis = d3.axisLeft().scale(yScale);
-
-    /*// Declare new svg line with new coordinates
-    let line = d3.line()
-    .x(function(d){
-        return xScale(d.size);
-    })
-    .y(function(d){
-        return yScale(d.pop);
-    });*/
 
     // Rescale axis
     APP.graph.svg.select('.xAxis')
       .transition()
-      .duration(1000)
+      .duration(APP.graph.transitionsDuration)
       .call(xAxis)
       .attr('x', APP.graph.width)
       .attr('y', -3);
 
     APP.graph.svg.select('.yAxis')
       .transition()
-      .duration(1000)
+      .duration(APP.graph.transitionsDuration)
       .call(yAxis)
       .attr('y',6)
       .attr('dy', '.71em');
@@ -421,31 +422,30 @@ APP.updateGraph = function(newCommune) {
     let interpolatedLine = d3.line().curve(d3.curveLinear).x( hy=>xScale(hy.year) ).y( hy=> yScale(hy.pop) );
     let newLine = d3.line().curve(d3.curveLinear).x( hy=>xScale(hy.year) ).y(yScale(0));
     
-    // returns a class for points and lines of given commune
-    let pointsClass = commune => 'point-'+commune.name.replace(/\W/g,"-")
-    let lineClass = commune => 'line-'+commune.name.replace(/\W/g,"-")
 
-    APP.graph.data.forEach(commune=>{
+    APP.graph.data.forEach((commune,graphDataIndex)=>{
     
-      let hyPoints = APP.graph.svg.selectAll("."+pointsClass(commune))
+      let hyPoints = APP.graph.svg.selectAll("."+APP.graph.pointsClass(commune))
         .data(commune.hab_year)
       
       let hyPointsEnter = hyPoints.enter()
         .append('circle')
-        .attr('class',pointsClass(commune))
+        .attr('class',APP.graph.pointsClass(commune)+" point")
         .attr('cx', d=>xScale(d.year))
         .attr('cy', yScale(0))
         .attr('r',3)
-        .style('opacity', 0.7)
-        .style('fill','red');
+        .style('fill',APP.graph.colorScale(commune));
+
+      hyPoints.exit().transition().duration(APP.graph.transitionsDuration).remove()
 
       hyPoints = hyPoints.merge(hyPointsEnter)
-        .transition(1000)
+        .transition().duration(APP.graph.transitionsDuration)
         .attr('cx', d=>xScale(d.year))
         .attr('cy', d=>yScale(d.pop))
+      
 
       // Translate line according to new coordinates
-      let hyLine = APP.graph.svg.selectAll('.'+lineClass(commune))
+      let hyLine = APP.graph.svg.selectAll('.'+APP.graph.lineClass(commune))
         .data([commune.hab_year])
       cl("commune.hab_year",commune.hab_year)
       cl("hyLine",hyLine)
@@ -453,40 +453,29 @@ APP.updateGraph = function(newCommune) {
       
       let hyLineEnter = hyLine.enter()
         .append("path")
-        .classed(lineClass(commune),true)
+        .attr("class",APP.graph.lineClass(commune)+" line")
         .attr("d", newLine)
-        .style("stroke", "blue")
+        .style('stroke',APP.graph.colorScale(commune))
         //.attr("clip-path", "url(#clipTemp)")
         .attr("fill","none");
       cl("hyLineEnter",hyLineEnter)
       cl("hyLineEnter.datum():")
-      ct(hyLineEnter.datum())
+      ct(hyLineEnter.data())
 
       hyLine = hyLine.merge(hyLineEnter)
-        .transition(1000)
+        .transition().duration(APP.graph.transitionsDuration)
         .attr("d", interpolatedLine)
+
+      if(graphDataIndex>=APP.graph.maxSize){
+        hyLine.remove()
+        hyPoints.remove()
+      }
     })
-    /*// Remap all dots according to new values
-    APP.graph.svg.selectAll('.point')
-      .data(APP.graph.data)
-      .transition()
-      .duration(1000)
-      .attr('cx', d => xScale(d.size))
-      .attr('cy', d => yScale(d.pop))
-      .attr('r',6)
-      .style('opacity', 0.7)
-      .style('fill','red');
+    // only keep the first APP.graph.maxSize elements 
+    APP.graph.data = APP.graph.data.filter((c,i)=> i<APP.graph.maxSize)
+    APP.graph.counter = APP.graph.counter+1
 
-    // Translate line according to new coordinates
-    APP.graph.svg.select('.line')
-    .transition()
-    .duration(1000)
-    .attr('d',line(APP.graph.data))
-    .style('stroke','black')
-    .style('stroke-width',0.7)
-    .style('fill','none');
-
-    // Interaction events on graphic
+     /*/ Interaction events on graphic
     APP.graph.svg.selectAll('.point')
     // Adding information on specific point to the tooltip on mouseover
     .on('mouseover', function(d){
