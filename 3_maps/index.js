@@ -17,6 +17,7 @@ let APP = {
     // returns a class for points and lines of given commune
     pointsClass: commune => 'point-'+commune.name.replace(/\W/g,"-"),
     lineClass: commune => 'line-'+commune.name.replace(/\W/g,"-"),
+    legendId: commune => 'legend-'+commune.name.replace(/\W/g,"-"),
     counter:0,
     // given a number returns
     colorScale: commune => d3.interpolateSinebow((commune.graphIndex % APP.graph.maxSize)/APP.graph.maxSize),
@@ -266,7 +267,7 @@ APP.makeCommunes = async function(){
             })
             // If the graph has been launched once, update it - Else, initialize it
             if(APP.graph.initialized){
-                APP.updateGraph(d);
+                APP.addCommuneToGraph(d);
             } else {
                 APP.graph.initialized = true;
                 APP.initGraph(d);
@@ -375,21 +376,44 @@ APP.initGraph = function(data){
 
 
     // Calling method to update graph according to current data
-    APP.updateGraph(data);
+    APP.addCommuneToGraph(data);
 }
 
-/*****
-Updating graph - put all dots in place according to new data, rescale axis and and translate line
-*****/
-APP.updateGraph = function(newCommune) {
+APP.addCommuneToGraph = function(newCommune){
+  cl("APP.addCommuneToGraph() new commune: ",newCommune.name)
 
-    cl("APP.updateGraph() new commune: ",newCommune.name)
+  if(!APP.graph.data.find(c => c.name==newCommune.name)){
     newCommune.graphIndex = APP.graph.counter
+    APP.graph.counter = APP.graph.counter+1
 
     // insert newCommune at beginning of array 
     APP.graph.data.unshift(newCommune)
     cl("APP.graph.data:")
     ct(APP.graph.data)
+
+    APP.updateGraph()
+  }
+}
+
+APP.removeCommuneFromGraph = function(communeToRemove){
+  cl("APP.removeCommuneFromGraph() commune to remove: ",newCommune.name)
+
+  let ctrIndex = APP.graph.data.findIndex(c => c.name==communeToRemove.name)
+
+  if(ctrIndex!=-1){
+    // insert newCommune at beginning of array 
+    APP.graph.data.splice(ctrIndex)
+    cl("APP.graph.data communes:")
+    ct(APP.graph.data.map(c=>c.names))
+
+    APP.updateGraph()
+  }
+}
+
+/*****
+Updating graph - put all dots in place according to new data, rescale axis and and translate line
+*****/
+APP.updateGraph = function() {
     
     // Setting up X scale and axis
     let xScale = d3.scaleLinear().range([0,APP.graph.width]).domain([1200,2000]);
@@ -418,11 +442,27 @@ APP.updateGraph = function(newCommune) {
     APP.graph.svg.selectAll('.axisLabel')
       .style('opacity', 1);
 
+
+    // create the legend
+    let legendDiv = d3.select("#graphLegend2").selectAll(".graph-commune-legend").data(
+      APP.graph.data.filter((c,i)=>i<APP.graph.maxSize),
+      function(c){return c? "legend-"+c.name : this.id} // /!\ function(){} needed here! no =>
+    )
+
+    let legendDivEnter = legendDiv.enter()
+      .append("span")
+      .attr("id", APP.graph.legendId)
+      .attr("class","graph-commune-legend")
+      .html(c => c.name)
+      .style('color',APP.graph.colorScale);
+
+    legendDiv.exit().remove()
+
     // returns a function to draw a line (the newLine simply has y=0 all along)
     let interpolatedLine = d3.line().curve(d3.curveLinear).x( hy=>xScale(hy.year) ).y( hy=> yScale(hy.pop) );
     let newLine = d3.line().curve(d3.curveLinear).x( hy=>xScale(hy.year) ).y(yScale(0));
-    
 
+    // draw the points and lines for each commune
     APP.graph.data.forEach((commune,graphDataIndex)=>{
     
       let hyPoints = APP.graph.svg.selectAll("."+APP.graph.pointsClass(commune))
@@ -473,7 +513,6 @@ APP.updateGraph = function(newCommune) {
     })
     // only keep the first APP.graph.maxSize elements 
     APP.graph.data = APP.graph.data.filter((c,i)=> i<APP.graph.maxSize)
-    APP.graph.counter = APP.graph.counter+1
 
      /*/ Interaction events on graphic
     APP.graph.svg.selectAll('.point')
