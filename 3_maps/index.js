@@ -4,7 +4,7 @@
 
 // Creating APP object for storing all Methods
 let APP = {
-  currentYear: 1850,
+  currentYear: 1536,
   // list of communes
   communes:[],
   graph:{
@@ -51,15 +51,18 @@ let tooltipMap;
 /*****
 Initializing the whole script of the page
 *****/
-APP.main = function(){
-    APP.initMap();
+APP.main = async function(){
+    await APP.initMap();
     APP.sliderevent();
+
+    document.getElementById("slider1").value = APP.currentYear; 
+    APP.updateYear()
 };
 
 /*****
 Initializing map - leaflet with cartodb basemap and tooltip ready
 *****/
-APP.initMap = function(){
+APP.initMap = async function(){
     // Initiaize the map - definig parameters and adding cartodb basemap
     map = new L.map("map", {center: [	47,7.5], zoom: 9, minZoom: 7, maxZoom: 20, maxBounds: ([[44.5, 4.5],[49, 12]])});
     let cartodb = L.tileLayer('https://api.mapbox.com/styles/v1/nvallott/cjcw1ex6i0zs92smn584yavkn/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibnZhbGxvdHQiLCJhIjoiY2pjdzFkM2diMWFrMzJxcW80eTdnNDhnNCJ9.O853joFyvgOZv7y9IJAnlA', {
@@ -67,19 +70,18 @@ APP.initMap = function(){
         // attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy;<a href="https://carto.com/attribution">CARTO</a>'
     });
 
+    // Getting tooltip ready for showing data
+    tooltipMap = d3.select('#map')
+      .append('div')
+      .attr('class', 'tooltip');
+
     // Add the cartodb layer to the map
     cartodb.addTo(map);
 
     // Calling metho to create heatmap overlay
     // APP.makeHeatMap();
     // Calling method to create - has to wait for the map to be created
-    APP.makeCommunes();
-
-    // Getting tooltip ready for showing data
-    tooltipMap = d3.select('#map')
-    .append('div')
-    .attr('class', 'tooltip');
-
+    await APP.makeCommunes();
 };
 
 /*****
@@ -220,34 +222,10 @@ APP.makeCommunes = async function(){
             .duration(100)
             .attr('r', function(d){
                 return 1.3*d.circleSize
-                // // For each type of buffer, get the pixel size in the correspondance table bufferVal
-                // if(d.MOYEN_TRAN.match('CheminFer')){
-                //     return bufferVal[$('#slider1').val()-1].bufferPx;
-                // } else if(d.MOYEN_TRAN == 'Bus'){
-                //     return bufferVal[$('#slider3').val()-1].bufferPx;
-                // } else {
-                //     return bufferVal[$('#slider2').val()-1].bufferPx;
-                // }
             });
             // Showing value of buffer in the tooltip
             tooltipMap.html(function(){
-                // For each type of buffer, get the population value in the correspondance table bufferVal
-                // let pop = "";
-                // if(d.MOYEN_TRAN.match('CheminFer')){
-                //     pop = d[bufferVal[$('#slider1').val()-1].pop];
-                // } else if(d.MOYEN_TRAN == 'Bus'){
-                //     pop = d[bufferVal[$('#slider3').val()-1].pop];
-                // } else {
-                //     pop = d[bufferVal[$('#slider2').val()-1].pop];
-                // }
-                // Replace unknown values with 0
-                // if(pop == "NA"){
-                //     pop = 0;
-                // }
-                // Return actual innerHTML text
-                // return "hello";
                 return `${d.name}`
-                // Pop : ${d.X}`;
             })
             .transition()
             .duration(50)
@@ -285,8 +263,6 @@ APP.makeCommunes = async function(){
         });
     })
 
-
-    APP.updateMap()
 }
 
 APP.updateMap = function(){
@@ -313,12 +289,15 @@ Updating innerHTML of buffer size values according to slider value using convers
 APP.sliderevent = function(){
     $('.slidBuffer').change(function(){
         //$('#slider1_val').html(bufferVal[$('#slider1').val()-1].buffer);
-        cl("$('#slider1').val()")
-        cl($('#slider1').val())
+        cl("$('#slider1').val() = ", $('#slider1').val())
         APP.currentYear = $('#slider1').val()
-        $("#slider1_val").html(APP.currentYear)
-        APP.updateMap()
+        APP.updateYear()
     });
+}
+
+APP.updateYear = function(){
+  $("#slider1_val").html(APP.currentYear)
+  APP.updateMap()
 }
 
 /*****
