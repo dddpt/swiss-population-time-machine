@@ -550,6 +550,10 @@ function interpolator(dataPoints){
 function exponentialInterpolator(dataPoints){
   let linearInterpolator = interpolator(dataPoints.map(dp=>[dp[0],Math.log(dp[1])]))
   return function(year){
-    return Math.exp(linearInterpolator(year))
+    let logResult = linearInterpolator(year)
+    if(logResult===null){
+      return null
+    }
+    return Math.exp(logResult)
   }
 }
