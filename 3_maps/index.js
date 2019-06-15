@@ -7,6 +7,9 @@ let APP = {
   currentYear: 1536,
   // list of communes
   communes:[],
+  communesFile: "communes_geo.csv",
+  ygrs:[],
+  ygrFile: "avg_yearly_growth_rates.csv",
   graph:{
     // Array of 0 to initialize correct number of dots for scatterplot
     data:[],
@@ -38,8 +41,9 @@ let windowWidth = $(window).width();  // returns width of browser viewport
 
 // Map
 let map;
-// Tooltip of the map
+// Tooltip of the map&graph
 let tooltipMap;
+let tooltipGraph;
 
 
 // Correspondance table for slider values, buffer label in meters, buffer sizes in pixel and pop values for each
@@ -54,6 +58,7 @@ Initializing the whole script of the page
 APP.main = async function(){
     await APP.initMap();
     APP.sliderevent();
+    await APP.loadYearlyGrowthRates()
 
     document.getElementById("slider1").value = APP.currentYear; 
     APP.updateYear()
@@ -147,7 +152,61 @@ Coloring HTML part for the legend
 // }
 
 /*****
-Creating points for PT stops and adding them to the map
+Loading yearly growth rates data
+*****/
+
+APP.loadYearlyGrowthRates = async function(){
+  APP.ygrs = await d3.dsv(";",APP.ygrFile, function(ygr){
+    ygr.year=parseInt(ygr.year)
+    ygr.data_pop=parseInt(ygr.data_pop)
+    ygr.duration=parseInt(ygr.duration)
+    ygr.ygr=parseFloat(ygr.ygr)
+    ygr.gr=parseFloat(ygr.gr)
+    return ygr
+  })
+}
+
+// calculates total growth rate between two given year, assumes y1<y2
+APP.calculateGrowthRate = function (y1,y2){
+  let ygrs12 = APP.ygrs.filter((ygr,i) => 
+    (ygr.year>=y1 || (APP.ygrs[i+1] && APP.ygrs[i+1].year>y1)) &&
+     ygr.year<y2 )
+  let ygr1 = ygrs12[0]
+  let ygr2 = ygrs12[ygrs12.length-1]
+  ygrs12 = ygrs12.filter((ygr,i) => i>0 && i< ygrs12.length-1)
+  let y1Duration = ygrs12[0].year-y1
+  let y2Duration = y2-ygr2.year
+  let gr1 = ygr1.ygr**y1Duration
+  let gr2 = ygr2.ygr**y2Duration
+  let gr12 = ygrs12.reduce((tot,ygr) => tot*ygr.gr,gr1*gr2)
+  return gr12
+}
+
+// extrapolate pop of a commune in the past
+APP.extrapolatePop = function(commune, year){
+  let hy1 = commune.hab_year[0]
+  if(hy1 && hy1.year>year){
+    return hy1.pop / APP.calculateGrowthRate(year,hy1.year)
+  }
+  return null
+}
+
+function pop_calculator(commune){
+  commune.pop_interpolator = exponentialInterpolator(commune.hab_year.map(hy=>[hy.year,hy.pop]))
+  commune.pop_extrapolator = year => APP.extrapolatePop(commune,year)
+  return function(year){
+    let hy1 = commune.hab_year[0]
+    if(hy1 && year<hy1.year){
+      return commune.pop_extrapolator(commune,year)
+    }
+    else{
+      return commune.pop_interpolator(year)
+    }
+  }
+}
+
+/*****
+Creating points for communes and adding them to the map
 *****/
 APP.makeCommunes = async function(){
     console.log("coucou");
@@ -191,11 +250,12 @@ APP.makeCommunes = async function(){
     });
 
     // Loading the public transportation datas
-    await d3.dsv(";","communes_geo.csv", function(commune){
+    await d3.dsv(";",APP.communesFile, function(commune){
       commune.hab_year = JSON.parse(commune.hab_year.replace(/'/g,'"'))
       commune.hab_year = commune.hab_year.sort((a,b)=>a.year-b.year)
       commune.raw_hab_year = JSON.parse(commune.raw_hab_year.replace(/'/g,'"'))
-      commune.pop_interpolator = exponentialInterpolator(commune.hab_year.map(hy=>[hy.year,hy.pop]))
+      //commune.pop_interpolator = exponentialInterpolator(commune.hab_year.map(hy=>[hy.year,hy.pop]))
+      commune.pop_calculator = pop_calculator(commune)
       commune.canton = commune.canton_x
       commune.canton_x = null
       commune.canton_y = null
@@ -225,7 +285,7 @@ APP.makeCommunes = async function(){
             });
             // Showing value of buffer in the tooltip
             tooltipMap.html(function(){
-                return `${d.name}`
+                return `${d.name}, pop: ${Math.round(d.pop_interpolator(APP.currentYear))}`
             })
             .transition()
             .duration(50)
@@ -235,14 +295,14 @@ APP.makeCommunes = async function(){
         })
         // Change html header for the graphic when buffer is clicked
         .on('click', function(d){
-            $('#graphLegend').html(function(){
+            /*$('#graphLegend').html(function(){
                 return `<table width="100%">
                 <tr id="arret"> <td> </td> <td>  ${APP.currentYear} </td> <td> </td> </tr>
                 </table>
                 <table width="100%">
                 <tr> <td> Canton : ${d.canton} </td> <td> &nbsp; </td> <td> Numéro OFS : ${d.bfsnr} </td> </tr>
                 </table>`;
-            })
+            })*/
             // If the graph has been launched once, update it - Else, initialize it
             if(APP.graph.initialized){
                 APP.addCommuneToGraph(d);
@@ -323,7 +383,7 @@ APP.initGraph = function(data){
     .attr("transform", `translate(${margin.left},${margin.top})`);
 
     // Adding div tooltip
-    let tooltipGraph = d3.select('#graph')
+    tooltipGraph = d3.select('#graph')
     .append('div')
     .attr('class', 'tooltipGraph')
     .style('left', '0px')
@@ -443,26 +503,6 @@ APP.updateGraph = function() {
 
     // draw the points and lines for each commune
     APP.graph.data.forEach((commune,graphDataIndex)=>{
-    
-      let hyPoints = APP.graph.svg.selectAll("."+APP.graph.pointsClass(commune))
-        .data(commune.hab_year)
-      
-      let hyPointsEnter = hyPoints.enter()
-        .append('circle')
-        .attr('class',APP.graph.pointsClass(commune)+" point")
-        .attr('cx', d=>xScale(d.year))
-        .attr('cy', yScale(0))
-        .attr('r',3)
-        .style('fill',APP.graph.colorScale(commune));
-
-      hyPoints.exit().transition().duration(APP.graph.transitionsDuration).remove()
-
-      hyPoints = hyPoints.merge(hyPointsEnter)
-        .transition().duration(APP.graph.transitionsDuration)
-        .attr('cx', d=>xScale(d.year))
-        .attr('cy', d=>yScale(d.pop))
-      
-
       // Translate line according to new coordinates
       let hyLine = APP.graph.svg.selectAll('.'+APP.graph.lineClass(commune))
         .data([commune.hab_year])
@@ -484,6 +524,27 @@ APP.updateGraph = function() {
       hyLine = hyLine.merge(hyLineEnter)
         .transition().duration(APP.graph.transitionsDuration)
         .attr("d", interpolatedLine)
+      
+      let hyPoints = APP.graph.svg.selectAll("."+APP.graph.pointsClass(commune))
+        .data(commune.hab_year)
+      
+      let hyPointsEnter = hyPoints.enter()
+        .append('circle')
+        .attr('class',APP.graph.pointsClass(commune)+" point")
+        .attr('cx', d=>xScale(d.year))
+        .attr('cy', yScale(0))
+        .attr('r',3)
+        .style('fill',APP.graph.colorScale(commune));
+
+      hyPoints.exit().transition().duration(APP.graph.transitionsDuration).remove()
+
+      hyPoints = hyPoints.merge(hyPointsEnter)
+        .transition().duration(APP.graph.transitionsDuration)
+        .attr('cx', d=>xScale(d.year))
+        .attr('cy', d=>yScale(d.pop))
+      
+
+      
 
       if(graphDataIndex>=APP.graph.maxSize){
         hyLine.remove()
@@ -493,34 +554,32 @@ APP.updateGraph = function() {
     // only keep the first APP.graph.maxSize elements 
     APP.graph.data = APP.graph.data.filter((c,i)=> i<APP.graph.maxSize)
 
-     /*/ Interaction events on graphic
+     // Interaction events on graphic
     APP.graph.svg.selectAll('.point')
     // Adding information on specific point to the tooltip on mouseover
-    .on('mouseover', function(d){
-        let cx = d3.select(this).attr('cx'); // To get appropriate coordinates for tooltip
-        let cy = d3.select(this).attr('cy'); // To get appropriate coordinates for tooltip
-        tooltipGraph.html(function(){
-            return `${d.pop} population <br> pour ${d.size}m`;
-        })
+      .on('mouseover', function(d){
+        let dot = d3.select(this)
+        let cx = dot.attr('cx') // To get appropriate coordinates for tooltip
+        let cy = dot.attr('cy') // To get appropriate coordinates for tooltip
+        tooltipGraph.html(`année: ${d.year}<br/>pop: ${d.pop}`)
         .style('left', `${cx}px`)
         .style('top', `${cy}px`);
         tooltipGraph.transition()
         .duration(100)
         .style('opacity', 0.8);
-    })
-    // Remove tooltip on mouseout
-    .on('mouseout', function(d){
-        tooltipGraph.transition()
-        .duration(200)
-        .style('opacity', 0);
-    });
+      })
+      // Remove tooltip on mouseout
+      .on('mouseout', function(d){
+          tooltipGraph.transition()
+          .duration(200)
+          .style('opacity', 0);
+      });
 
-    // Replace part of the labels for french format
+    /*/ Replace part of the labels for french format
     $('text').each(function(){
         let legendText = $(this).text().replace(',',"'");
         $(this).text(legendText);
-    });
-    */
+    });*/
 }
 
 /** Returns a linear interpolator from the given dataPoints
@@ -531,8 +590,10 @@ function interpolator(dataPoints){
   dataPoints.sort((a,b)=>a[0]-b[0])
   //cl("dataPoints",dataPoints)
   return function interpolate(x){
+    if(dataPoints[0] && x==dataPoints[0][0]){
+      return dataPoints[0][1]
+    }
     let bi = dataPoints.findIndex(b=>b[0]>=x)
-    //cl("bi: ",bi)
     if(bi>0 && bi<=dataPoints.length){
       let a = dataPoints[bi-1]
       let b = dataPoints[bi]
