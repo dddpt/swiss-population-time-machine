@@ -167,7 +167,7 @@ APP.loadYearlyGrowthRates = async function(){
 }
 
 // calculates total growth rate between two given year, assumes y1<y2
-APP.calculateGrowthRate = function (y1,y2){
+APP.calculateGrowthRateOLD = function (y1,y2){
   let ygrs12 = APP.ygrs.filter((ygr,i) => 
     (ygr.year>=y1 || (APP.ygrs[i+1] && APP.ygrs[i+1].year>y1)) &&
      ygr.year<y2 )
@@ -181,10 +181,40 @@ APP.calculateGrowthRate = function (y1,y2){
   let gr12 = ygrs12.reduce((tot,ygr) => tot*ygr.gr,gr1*gr2)
   return gr12
 }
+APP.calculateGrowthRate = function (y1,y2){
+  let ygrs12 = APP.ygrs.filter((ygr,i) => 
+    (ygr.year>=y1 || (APP.ygrs[i+1] && APP.ygrs[i+1].year>y1)) &&
+     ygr.year<y2 )
+  cl("ygrs12: ",ygrs12)
+  if(ygrs12.length>0){
+    let ygrLast = ygrs12[ygrs12.length-1]
+    let y2Duration = y2 - ygrLast.year
+    ygrs12[ygrs12.length-1] = {
+      year: ygrLast.year,
+      ygr: ygrLast.ygr,
+      gr: ygrLast.ygr ** y2Duration,
+      duration: y2Duration,
+    }
+
+    let ygrFirst = ygrs12[0]
+    let y1Duration = ygrFirst.duration - (y1-ygrFirst.year)
+    ygrs12[0] = {
+      year: y1,
+      ygr: ygrFirst.ygr,
+      gr: ygrFirst.ygr ** y1Duration,
+      duration: y1Duration,
+    }
+
+    return ygrs12.reduce((tot,ygr) => tot*ygr.gr, 1)
+  }
+  return null
+}
 
 // extrapolate pop of a commune in the past
 APP.extrapolatePop = function(commune, year){
   let hy1 = commune.hab_year[0]
+  //cl("year: ",year)
+  //cl("hy1: ", hy1, ", bool(hy1): ", Boolean(hy1), ", hy1.year: ", hy1.year, ", hy1.year>year: ", hy1.year>year, ", hy1 && hy1.year>year: ", hy1 && hy1.year>year)
   if(hy1 && hy1.year>year){
     return hy1.pop / APP.calculateGrowthRate(year,hy1.year)
   }
@@ -194,10 +224,10 @@ APP.extrapolatePop = function(commune, year){
 function pop_calculator(commune){
   commune.pop_interpolator = exponentialInterpolator(commune.hab_year.map(hy=>[hy.year,hy.pop]))
   commune.pop_extrapolator = year => APP.extrapolatePop(commune,year)
+  let hy1 = commune.hab_year[0]
   return function(year){
-    let hy1 = commune.hab_year[0]
     if(hy1 && year<hy1.year){
-      return commune.pop_extrapolator(commune,year)
+      return commune.pop_extrapolator(year)
     }
     else{
       return commune.pop_interpolator(year)
@@ -224,14 +254,6 @@ APP.makeCommunes = async function(){
         .attr('r', 3)
         .attr('fill', function(d){
             return "blue"
-            // different fill color according to transport type
-            // if(d.MOYEN_TRAN.match('CheminFer')){
-            //     return "blue"
-            // } else if(d.MOYEN_TRAN == 'Bus'){
-            //     return "lime"
-            // } else {
-            //     return "turquoise"
-            // }
         })
         .style('position', 'relative')
         // .style('stroke','black')
@@ -285,7 +307,7 @@ APP.makeCommunes = async function(){
             });
             // Showing value of buffer in the tooltip
             tooltipMap.html(function(){
-                return `${d.name}, pop: ${Math.round(d.pop_interpolator(APP.currentYear))}`
+                return `${d.name}, pop: ${Math.round(d.pop_calculator(APP.currentYear))}`
             })
             .transition()
             .duration(50)
@@ -331,8 +353,16 @@ APP.updateMap = function(){
       .attr("r",d=>{
         //let hy1850 = d.hab_year.filter(hy=>hy.year==1850)
         //let radius = hy1850.length>0? hy1850[0].pop: 300
-        d.circleSize = Math.sqrt(+d.pop_interpolator(APP.currentYear)/50)
+        d.circleSize = Math.sqrt(+d.pop_calculator(APP.currentYear)/50)
         return d.circleSize
+      })
+      .attr('fill', function(d){
+        d.hab_year[0]
+        if(d.hab_year[0] && d.hab_year[0].year<APP.currentYear){
+          return "blue"
+        } else{
+          return "darkgreen"
+        }
       })
 };
 
@@ -562,8 +592,8 @@ APP.updateGraph = function() {
         let cx = dot.attr('cx') // To get appropriate coordinates for tooltip
         let cy = dot.attr('cy') // To get appropriate coordinates for tooltip
         tooltipGraph.html(`année: ${d.year}<br/>pop: ${d.pop}`)
-        .style('left', `${cx}px`)
-        .style('top', `${cy}px`);
+        .style('left', `${cx-10}px`)
+        .style('top', `${cy-25}px`);
         tooltipGraph.transition()
         .duration(100)
         .style('opacity', 0.8);
