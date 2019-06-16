@@ -7,9 +7,9 @@ let APP = {
   currentYear: 1536,
   // list of communes
   communes:[],
-  communesFile: "communes_geo.csv",
+  communesFile: "3_maps/communes_geo.csv",
   ygrs:[],
-  ygrFile: "avg_yearly_growth_rates.csv",
+  ygrFile: "3_maps/avg_yearly_growth_rates.csv",
   graph:{
     // Array of 0 to initialize correct number of dots for scatterplot
     data:[],
