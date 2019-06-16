@@ -462,15 +462,16 @@ APP.addCommuneToGraph = function(newCommune){
 }
 
 APP.removeCommuneFromGraph = function(communeToRemove){
-  cl("APP.removeCommuneFromGraph() commune to remove: ",newCommune.name)
+  cl("APP.removeCommuneFromGraph() commune to remove: ",communeToRemove.name)
 
   let ctrIndex = APP.graph.data.findIndex(c => c.name==communeToRemove.name)
 
+  cl("ctrIndex:", ctrIndex)
+
   if(ctrIndex!=-1){
-    // insert newCommune at beginning of array 
-    APP.graph.data.splice(ctrIndex)
+    APP.graph.data.splice(ctrIndex,1)
     cl("APP.graph.data communes:")
-    ct(APP.graph.data.map(c=>c.names))
+    ct(APP.graph.data.map(c=>c.name))
 
     APP.updateGraph()
   }
@@ -516,7 +517,7 @@ APP.updateGraph = function() {
     )
 
     let legendDivEnter = legendDiv.enter()
-      .append("span")
+      .append("div")
       .attr("id", APP.graph.legendId)
       .attr("class","graph-commune-legend")
       .html(c => c.name)

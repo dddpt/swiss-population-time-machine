@@ -38,42 +38,67 @@
             </div>
         </nav>
     </header>
-    <!-- MAIN BODY - MAP SIDE -->
-    <div class="col-lg-8 col-md-8 col-sm-8">
-        <div id="map"></div>
+    <div class="container">
+      <div class="col-lg-12 col-md-12 col-sm-12 center">
+        <h1>Population des communes Suisses à travers le temps</h1>
+      </div>
     </div>
-    <!-- MAIN BODY - SLIDER & GRAPH SIDE -->
-    <div class="col-lg-4 col-md-4 col-sm-4">
-        <!-- TABLE FOR SLIDER AND ICONS -->
-        <table>
-            <span id="slideLabel">Choissez une année:</br></br></span>
-            <!-- SLIDER1 -->
-            <tr>
-                <td width="100%">
-                    <input id="slider1" class="slidBuffer" type="range" min=1200 max=2000 step=1 value=1>
-                    <output id="slider1_scale">1200 à 2000</output>
-                    <output >Année sélectionnée: <span id="slider1_val"></span></output>
-                </td>
-                <td  width="30%" height="50px">
-                    <div id="CheminFerBubble">
-                        <svg height="15" width="15">
-                            <!-- <circle cx="7" cy="7" r="6" stroke="black" stroke-width="1" fill="blue" opacity="0.7"/> --> -->
-                        </svg>
-                    </div>
-                </td>
-            </tr>
-        </table>
+
+    <div id="map-graph" class="container-fluid">
+      <!-- MAIN BODY - MAP SIDE -->
+      <div class="col-lg-8 col-md-8 col-sm-8">
+          <div id="map"></div>
+      </div>
+      <!-- MAIN BODY - SLIDER & GRAPH SIDE -->
+      <div class="col-lg-4 col-md-4 col-sm-4">
+          <!-- TABLE FOR SLIDER AND ICONS -->
+          <table>
+              <span id="slideLabel">Choissez une année:</br></br></span>
+              <!-- SLIDER1 -->
+              <tr>
+                  <td width="100%">
+                      <input id="slider1" class="slidBuffer" type="range" min=1200 max=2000 step=1 value=1>
+                      <output id="slider1_scale">1200 à 2000</output>
+                      <output >Année sélectionnée: <span id="slider1_val"></span></output>
+                  </td>
+                  <td  width="30%" height="50px">
+                      <div id="CheminFerBubble">
+                          <svg height="15" width="15">
+                              <!-- <circle cx="7" cy="7" r="6" stroke="black" stroke-width="1" fill="blue" opacity="0.7"/> --> -->
+                          </svg>
+                      </div>
+                  </td>
+              </tr>
+          </table>
+      </div>
+      <!-- GRAPH SECTION -->
+      <div id="graphPart" class="col-lg-4 col-md-4 col-sm-4">
+          <div id="graphLegend">
+          </div>
+          <!-- THE GRAPH GOES THERE -->
+          <div id="graph">
+              <span id="tuto"></br></br>Cliquez sur une commune pour générer son graphique</span>
+          </div>
+          <div id="graphLegend2"></div>
+      </div>
     </div>
-    <!-- GRAPH SECTION -->
-    <div id="graphPart" class="col-lg-4 col-md-4 col-sm-4">
-        <div id="graphLegend">
-        </div>
-        <!-- THE GRAPH GOES THERE -->
-        <div id="graph">
-            <span id="tuto"></br></br>Cliquez sur une commune pour générer son graphique</span>
-        </div>
-        <div id="graphLegend2"></div>
+
+
+    <div class="container">
+      <div class="col-lg-12 col-md-12 col-sm-12">
+          <p>In publishing and graphic design, Lorem ipsum is a placeholder text commonly used to demonstrate the visual form of a document without relying on meaningful content (also called greeking). Replacing the actual content with placeholder text allows designers to design the form of the content before the content itself has been produced.
+  
+              The lorem ipsum text is typically a scrambled section of De finibus bonorum et malorum, a 1st-century BC Latin text by Cicero, with words altered, added, and removed to make it nonsensical, improper Latin.
+              
+              A variation of the ordinary lorem ipsum text has been used in typesetting since the 1960s or earlier, when it was popularized by advertisements for Letraset transfer sheets. It was introduced to the information age in the mid-1980s by Aldus Corporation, which employed it in graphics and word-processing templates for its desktop publishing program PageMaker. Many popular word processors use this format as a placeholder. Some examples are Pages or Microsoft Word. 
+          </p>
+          
+      </div>
     </div>
+  
+
+
     <!-- LAUNCHING MAIN SCRIPT -->
     <script> APP.main(); </script>
 </body>
+</html>
