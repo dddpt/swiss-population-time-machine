@@ -185,7 +185,6 @@ APP.calculateGrowthRate = function (y1,y2){
   let ygrs12 = APP.ygrs.filter((ygr,i) => 
     (ygr.year>=y1 || (APP.ygrs[i+1] && APP.ygrs[i+1].year>y1)) &&
      ygr.year<y2 )
-  cl("ygrs12: ",ygrs12)
   if(ygrs12.length>0){
     let ygrLast = ygrs12[ygrs12.length-1]
     let y2Duration = y2 - ygrLast.year
@@ -238,6 +237,7 @@ function pop_calculator(commune){
 /*****
 Creating points for communes and adding them to the map
 *****/
+let du = 32
 APP.makeCommunes = async function(){
     console.log("coucou");
     // Empty array to store
@@ -273,9 +273,10 @@ APP.makeCommunes = async function(){
 
     // Loading the public transportation datas
     await d3.dsv(";",APP.communesFile, function(commune){
-      commune.hab_year = JSON.parse(commune.hab_year.replace(/'/g,'"'))
+      commune.hab_year = JSON.parse(commune.hab_year.replace(/'/g,'"') )
       commune.hab_year = commune.hab_year.sort((a,b)=>a.year-b.year)
-      commune.raw_hab_year = JSON.parse(commune.raw_hab_year.replace(/'/g,'"'))
+      //cl("commune.hab_year: ", commune.raw_hab_year.replace(/'/g,'"'))
+      //commune.raw_hab_year = JSON.parse(commune.raw_hab_year.replace(/'/g,'"'))
       //commune.pop_interpolator = exponentialInterpolator(commune.hab_year.map(hy=>[hy.year,hy.pop]))
       commune.pop_calculator = pop_calculator(commune)
       commune.canton = commune.canton_x
@@ -378,8 +379,6 @@ Updating innerHTML of buffer size values according to slider value using convers
 *****/
 APP.sliderevent = function(){
     $('.slidBuffer').change(function(){
-        //$('#slider1_val').html(bufferVal[$('#slider1').val()-1].buffer);
-        cl("$('#slider1').val() = ", $('#slider1').val())
         APP.currentYear = $('#slider1').val()
         APP.updateYear()
     });
