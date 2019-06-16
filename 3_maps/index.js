@@ -448,7 +448,7 @@ APP.initGraph = function(data){
 }
 
 APP.addCommuneToGraph = function(newCommune){
-  cl("APP.addCommuneToGraph() new commune: ",newCommune.name)
+  //cl("APP.addCommuneToGraph() new commune: ",newCommune.name)
 
   if(!APP.graph.data.find(c => c.name==newCommune.name)){
     newCommune.graphIndex = APP.graph.counter
@@ -456,8 +456,6 @@ APP.addCommuneToGraph = function(newCommune){
 
     // insert newCommune at beginning of array 
     APP.graph.data.unshift(newCommune)
-    cl("APP.graph.data:")
-    ct(APP.graph.data)
 
     APP.updateGraph()
   }
@@ -535,9 +533,6 @@ APP.updateGraph = function() {
       // Translate line according to new coordinates
       let hyLine = APP.graph.svg.selectAll('.'+APP.graph.lineClass(commune))
         .data([commune.hab_year])
-      cl("commune.hab_year",commune.hab_year)
-      cl("hyLine",hyLine)
-      cl("hyLine.data()",hyLine.data())
       
       let hyLineEnter = hyLine.enter()
         .append("path")
@@ -546,9 +541,6 @@ APP.updateGraph = function() {
         .style('stroke',APP.graph.colorScale(commune))
         //.attr("clip-path", "url(#clipTemp)")
         .attr("fill","none");
-      cl("hyLineEnter",hyLineEnter)
-      cl("hyLineEnter.datum():")
-      ct(hyLineEnter.data())
 
       hyLine = hyLine.merge(hyLineEnter)
         .transition().duration(APP.graph.transitionsDuration)
