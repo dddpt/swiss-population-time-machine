@@ -23,7 +23,15 @@ let APP = {
     legendId: commune => 'legend-'+commune.name.replace(/\W/g,"-"),
     counter:0,
     // given a number returns
-    colorScale: commune => d3.interpolatePlasma((commune.graphIndex % APP.graph.maxSize)/APP.graph.maxSize),
+    colors: [0.2,0.4,0.6,0.8].map(d3.interpolateRainbow),
+    colorScale: function(){
+      let usedColors = APP.graph.data.map(c=>c.graphColor)
+      let freeColors = APP.graph.colors.filter(color => !usedColors.includes(color))
+      if(freeColors.length>0){
+        return freeColors[0]
+      }
+      return "black"
+    },
     transitionsDuration: 1000
   }
 };
@@ -451,7 +459,7 @@ APP.addCommuneToGraph = function(newCommune){
   //cl("APP.addCommuneToGraph() new commune: ",newCommune.name)
 
   if(!APP.graph.data.find(c => c.name==newCommune.name)){
-    newCommune.graphIndex = APP.graph.counter
+    newCommune.graphColor = APP.graph.colorScale()
     APP.graph.counter = APP.graph.counter+1
 
     // insert newCommune at beginning of array 
@@ -470,9 +478,6 @@ APP.removeCommuneFromGraph = function(communeToRemove){
 
   if(ctrIndex!=-1){
     APP.graph.data.splice(ctrIndex,1)
-    cl("APP.graph.data communes:")
-    ct(APP.graph.data.map(c=>c.name))
-    APP.graph.counter = APP.graph.counter-1
 
     APP.updateGraph()
   }
@@ -486,6 +491,9 @@ APP.updateGraph = function() {
     // Setting up X scale and axis
     let xScale = d3.scaleLinear().range([0,APP.graph.width]).domain([1200,2000]);
     let xAxis = d3.axisBottom().scale(xScale);
+
+    // only keep the first APP.graph.maxSize elements 
+    APP.graph.data = APP.graph.data.filter((c,i)=> i<APP.graph.maxSize)
 
     // Setting up Y scale and axis
     let yMax = d3.max(APP.graph.data.filter((c,i)=> i<APP.graph.maxSize).map(commune => commune.hab_year.map(hy =>hy.pop)).flat())
@@ -527,7 +535,7 @@ APP.updateGraph = function() {
       .on("click", APP.removeCommuneFromGraph)
     legendDivEnter.append("span")
       .html(c => c.name)
-      .style('color',APP.graph.colorScale);
+      .style('color', c => c.graphColor);
 
     legendDiv.exit().remove()
 
@@ -544,8 +552,8 @@ APP.updateGraph = function() {
       .append("path")
       .attr("id",APP.graph.lineClass)
       .attr("class","line")
-      .attr("d", c => {cl("D3D3 interpolatedLine d:",c.hab_year);return newLine(c.hab_year)})
-      .style('stroke',APP.graph.colorScale)
+      .attr("d", c =>  newLine(c.hab_year))
+      .style('stroke',c => c.graphColor)
       //.attr("clip-path", "url(#clipTemp)")
       .attr("fill","none")
       //.attr("d", c => interpolatedLine(c.hab_year))
@@ -575,24 +583,18 @@ APP.updateGraph = function() {
           .attr('cx', hy=>xScale(hy.year))
           .attr('cy', yScale(0))
           .attr('r',3)
-          .style('fill',APP.graph.colorScale(commune));
+          .style('fill',commune.graphColor);
       })
 
     hyPoints.exit().remove()
 
     hyPoints = hyPoints.merge(hyPointsEnter)
       .each(function(commune){
-        let thisthis = d3.select(this)
-        cl("thisthis.nodes(): ", thisthis.nodes())
-        let pointspoints = thisthis.selectAll(".point")
-        cl("pointspoints.nodes(): ", pointspoints.nodes())
-        pointspoints.transition().duration(APP.graph.transitionsDuration)
+        d3.select(this).selectAll(".point")
+          .transition().duration(APP.graph.transitionsDuration)
           .attr('cx', hy=>xScale(hy.year))
           .attr('cy', hy=>yScale(hy.pop))
       })
-
-    // only keep the first APP.graph.maxSize elements 
-    APP.graph.data = APP.graph.data.filter((c,i)=> i<APP.graph.maxSize)
 
      // Interaction events on graphic
     APP.graph.svg.selectAll('.point')
