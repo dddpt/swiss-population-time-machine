@@ -401,7 +401,7 @@ APP.initGraph = function(data){
 
     // Setting dimensions of the svg and padding between each value of the barplot
     APP.graph.width = $('#graphPart').width() - margin.left - margin.right;
-    APP.graph.height = 400 - margin.top - margin.bottom;
+    APP.graph.height = 360 - margin.top - margin.bottom;
 
     // Creating svg, appending attributes
     APP.graph.svg = d3.select("#graph")
@@ -513,7 +513,7 @@ APP.updateGraph = function() {
     // create the legend
     let legendDiv = d3.select("#graphLegend2").selectAll(".graph-commune-legend").data(
       APP.graph.data.filter((c,i)=>i<APP.graph.maxSize),
-      function(c){return c? "legend-"+c.name : this.id} // /!\ function(){} needed here! no =>
+      function(c){return c? "legend-"+c.name : this.id} // /!\ function(){} needed here! arrow func not allowed
     )
 
     let legendDivEnter = legendDiv.enter()
