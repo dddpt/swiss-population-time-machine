@@ -23,7 +23,7 @@ let APP = {
     legendId: commune => 'legend-'+commune.name.replace(/\W/g,"-"),
     counter:0,
     // given a number returns
-    colorScale: commune => d3.interpolateSinebow((commune.graphIndex % APP.graph.maxSize)/APP.graph.maxSize),
+    colorScale: commune => d3.interpolatePlasma((commune.graphIndex % APP.graph.maxSize)/APP.graph.maxSize),
     transitionsDuration: 1000
   }
 };
@@ -521,6 +521,11 @@ APP.updateGraph = function() {
       .append("div")
       .attr("id", APP.graph.legendId)
       .attr("class","graph-commune-legend")
+    legendDivEnter.append("span")
+      .html("x ")
+      .style("cursor", "pointer")
+      .on("click", APP.removeCommuneFromGraph)
+    legendDivEnter.append("span")
       .html(c => c.name)
       .style('color',APP.graph.colorScale);
 
@@ -530,7 +535,7 @@ APP.updateGraph = function() {
     let interpolatedLine = d3.line().curve(d3.curveLinear).x( hy=>xScale(hy.year) ).y( hy=> yScale(hy.pop) );
     let newLine =          d3.line().curve(d3.curveLinear).x( hy=>xScale(hy.year) ).y(yScale(0));
 
-    // NEW
+    // LINES
     let hyLines = APP.graph.svg.selectAll(".line").data(
       APP.graph.data.filter((c,i)=>i<APP.graph.maxSize),
       function(c){return c? APP.graph.lineClass(c) : this.id} // /!\ function(){} needed here! arrow func not allowed
@@ -551,9 +556,8 @@ APP.updateGraph = function() {
       .transition().duration(APP.graph.transitionsDuration)
       .attr("d", c => interpolatedLine(c.hab_year))
 
-    //*/// FIN NEW
-
-    // NEW NEW    
+      
+    // POINTS
     let hyPoints = APP.graph.svg.selectAll(".points-g").data(
       APP.graph.data.filter((c,i)=>i<APP.graph.maxSize),
       function(c){return c? APP.graph.pointsClass(c) : this.id} // /!\ function(){} needed here! arrow func not allowed
@@ -586,55 +590,7 @@ APP.updateGraph = function() {
           .attr('cx', hy=>xScale(hy.year))
           .attr('cy', hy=>yScale(hy.pop))
       })
-    //*/ FIN NEW NEW
 
-    // draw the points and lines for each commune
-    APP.graph.data.forEach((commune,graphDataIndex)=>{
-      /*/ Translate line according to new coordinates
-      let hyLine = APP.graph.svg.selectAll('.'+APP.graph.lineClass(commune))
-        .data([commune.hab_year])
-      
-      let hyLineEnter = hyLine.enter()
-        .append("path")
-        //.attr("id",APP.graph.lineClass(commune))
-        .attr("class",APP.graph.lineClass(commune)+" line")
-        .attr("d", newLine)
-        .style('stroke',APP.graph.colorScale(commune))
-        //.attr("clip-path", "url(#clipTemp)")
-        .attr("fill","none");
-
-      hyLine = hyLine.merge(hyLineEnter)
-        .transition().duration(APP.graph.transitionsDuration)
-        .attr("d", d => {cl("LOOP interpolatedLine d:",d);return interpolatedLine(d)})
-        //.attr("d", interpolatedLine)
-      //*/
-      
-      /*let hyPoints = APP.graph.svg.selectAll("."+APP.graph.pointsClass(commune))
-        .data(commune.hab_year)
-      
-      let hyPointsEnter = hyPoints.enter()
-        .append('circle')
-        .attr('class',APP.graph.pointsClass(commune)+" point")
-        .attr('cx', d=>xScale(d.year))
-        .attr('cy', yScale(0))
-        .attr('r',3)
-        .style('fill',APP.graph.colorScale(commune));
-
-      hyPoints.exit().transition().duration(APP.graph.transitionsDuration).remove()
-
-      hyPoints = hyPoints.merge(hyPointsEnter)
-        .transition().duration(APP.graph.transitionsDuration)
-        .attr('cx', d=>xScale(d.year))
-        .attr('cy', d=>yScale(d.pop))
-      
-
-      
-
-      if(graphDataIndex>=APP.graph.maxSize){
-        hyLine.remove()
-        hyPoints.remove()
-      }*/
-    })
     // only keep the first APP.graph.maxSize elements 
     APP.graph.data = APP.graph.data.filter((c,i)=> i<APP.graph.maxSize)
 
