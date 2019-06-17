@@ -2,6 +2,9 @@
 # Draw maps
 ====================================
 
+BEST POPULATION DENSITY DATA-VIZ
+https://pudding.cool/2018/10/city_3d/https://blog.mapbox.com/3d-mapping-global-population-density-how-i-built-it-141785c91107
+
 Map original repo: roubaka/TPVD
 https://github.com/roubaka/TPVD
 
