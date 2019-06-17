@@ -472,6 +472,7 @@ APP.removeCommuneFromGraph = function(communeToRemove){
     APP.graph.data.splice(ctrIndex,1)
     cl("APP.graph.data communes:")
     ct(APP.graph.data.map(c=>c.name))
+    APP.graph.counter = APP.graph.counter-1
 
     APP.updateGraph()
   }
@@ -527,16 +528,75 @@ APP.updateGraph = function() {
 
     // returns a function to draw a line (the newLine simply has y=0 all along)
     let interpolatedLine = d3.line().curve(d3.curveLinear).x( hy=>xScale(hy.year) ).y( hy=> yScale(hy.pop) );
-    let newLine = d3.line().curve(d3.curveLinear).x( hy=>xScale(hy.year) ).y(yScale(0));
+    let newLine =          d3.line().curve(d3.curveLinear).x( hy=>xScale(hy.year) ).y(yScale(0));
+
+    // NEW
+    let hyLines = APP.graph.svg.selectAll(".line").data(
+      APP.graph.data.filter((c,i)=>i<APP.graph.maxSize),
+      function(c){return c? APP.graph.lineClass(c) : this.id} // /!\ function(){} needed here! arrow func not allowed
+    )
+    let hyLinesEnter = hyLines.enter()
+      .append("path")
+      .attr("id",APP.graph.lineClass)
+      .attr("class","line")
+      .attr("d", c => {cl("D3D3 interpolatedLine d:",c.hab_year);return newLine(c.hab_year)})
+      .style('stroke',APP.graph.colorScale)
+      //.attr("clip-path", "url(#clipTemp)")
+      .attr("fill","none")
+      //.attr("d", c => interpolatedLine(c.hab_year))
+    
+    hyLines.exit().remove()
+
+    hyLines = hyLines.merge(hyLinesEnter)
+      .transition().duration(APP.graph.transitionsDuration)
+      .attr("d", c => interpolatedLine(c.hab_year))
+
+    //*/// FIN NEW
+
+    // NEW NEW    
+    let hyPoints = APP.graph.svg.selectAll(".points-g").data(
+      APP.graph.data.filter((c,i)=>i<APP.graph.maxSize),
+      function(c){return c? APP.graph.pointsClass(c) : this.id} // /!\ function(){} needed here! arrow func not allowed
+    )
+      
+    let hyPointsEnter = hyPoints.enter()
+      .append('g')
+      .attr('id', APP.graph.pointsClass)
+      .attr('class', "points-g")
+      .each(function(commune){
+        let points = d3.select(this).selectAll(".point").data(commune.hab_year)
+        points.enter()
+          .append('circle')
+          .attr('class', "point")
+          .attr('cx', hy=>xScale(hy.year))
+          .attr('cy', yScale(0))
+          .attr('r',3)
+          .style('fill',APP.graph.colorScale(commune));
+      })
+
+    hyPoints.exit().remove()
+
+    hyPoints = hyPoints.merge(hyPointsEnter)
+      .each(function(commune){
+        let thisthis = d3.select(this)
+        cl("thisthis.nodes(): ", thisthis.nodes())
+        let pointspoints = thisthis.selectAll(".point")
+        cl("pointspoints.nodes(): ", pointspoints.nodes())
+        pointspoints.transition().duration(APP.graph.transitionsDuration)
+          .attr('cx', hy=>xScale(hy.year))
+          .attr('cy', hy=>yScale(hy.pop))
+      })
+    //*/ FIN NEW NEW
 
     // draw the points and lines for each commune
     APP.graph.data.forEach((commune,graphDataIndex)=>{
-      // Translate line according to new coordinates
+      /*/ Translate line according to new coordinates
       let hyLine = APP.graph.svg.selectAll('.'+APP.graph.lineClass(commune))
         .data([commune.hab_year])
       
       let hyLineEnter = hyLine.enter()
         .append("path")
+        //.attr("id",APP.graph.lineClass(commune))
         .attr("class",APP.graph.lineClass(commune)+" line")
         .attr("d", newLine)
         .style('stroke',APP.graph.colorScale(commune))
@@ -545,9 +605,11 @@ APP.updateGraph = function() {
 
       hyLine = hyLine.merge(hyLineEnter)
         .transition().duration(APP.graph.transitionsDuration)
-        .attr("d", interpolatedLine)
+        .attr("d", d => {cl("LOOP interpolatedLine d:",d);return interpolatedLine(d)})
+        //.attr("d", interpolatedLine)
+      //*/
       
-      let hyPoints = APP.graph.svg.selectAll("."+APP.graph.pointsClass(commune))
+      /*let hyPoints = APP.graph.svg.selectAll("."+APP.graph.pointsClass(commune))
         .data(commune.hab_year)
       
       let hyPointsEnter = hyPoints.enter()
@@ -571,7 +633,7 @@ APP.updateGraph = function() {
       if(graphDataIndex>=APP.graph.maxSize){
         hyLine.remove()
         hyPoints.remove()
-      }
+      }*/
     })
     // only keep the first APP.graph.maxSize elements 
     APP.graph.data = APP.graph.data.filter((c,i)=> i<APP.graph.maxSize)
