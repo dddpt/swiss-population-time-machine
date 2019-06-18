@@ -405,7 +405,7 @@ APP.initGraph = function(data){
     $('#tuto').remove();
 
     // Creating margins for the svg
-    let margin = {top : 40, right : 40, bottom : 55, left : 52};
+    let margin = {top : 20, right : 40, bottom : 30, left : 52};
 
     // Setting dimensions of the svg and padding between each value of the barplot
     APP.graph.width = $('#graphPart').width() - margin.left - margin.right;
@@ -426,6 +426,16 @@ APP.initGraph = function(data){
       .style('left', '0px')
       .style('top', '0px')
       .style('opacity',0);
+
+      // Adding grid
+      // X gridlines
+      APP.graph.svg.append("g")			
+        .attr("class", "xgrid")
+        .attr("transform", "translate(0," + APP.graph.height + ")")
+  
+      // Y gridlines
+      APP.graph.svg.append("g")			
+        .attr("class", "ygrid")
 
     // Adding axis
     APP.graph.svg.append('g')
@@ -518,6 +528,24 @@ APP.updateGraph = function() {
     APP.graph.svg.selectAll('.axisLabel')
       .style('opacity', 1);
 
+    // Rescale grid
+    APP.graph.svg.select('.xgrid')
+      .transition()
+      .duration(APP.graph.transitionsDuration)
+      .call(xAxis
+        .tickSize(-APP.graph.height)
+        .tickFormat("")
+      )
+      .attr('x', APP.graph.width)
+
+    APP.graph.svg.select('.ygrid')
+      .transition()
+      .duration(APP.graph.transitionsDuration)
+      .call(yAxis
+        .tickSize(-APP.graph.width)
+        .tickFormat("")
+      )
+
 
     // create the legend
     let legendDiv = d3.select("#graphLegend2").selectAll(".graph-commune-legend").data(
@@ -536,6 +564,14 @@ APP.updateGraph = function() {
     legendDivEnter.append("span")
       .html(c => c.name)
       .style('color', c => c.graphColor);
+    legendDivEnter.append("span")
+      .html(" (")
+    legendDivEnter.append("a")
+      .attr("href", c=> "https://beta.hls-dhs-dss.ch"+c.url.replace("de","fr"))
+      .attr("target","_blank")
+      .html("dhs")
+    legendDivEnter.append("span")
+      .html(")")
 
     legendDiv.exit().remove()
 

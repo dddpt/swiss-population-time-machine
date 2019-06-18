@@ -61,6 +61,31 @@ td {
     stroke-width: 1px;
 }
 
+
+.xgrid path{
+  stroke:white;
+  stroke-width: 0px;
+}
+.ygrid path{
+  stroke:white;
+  stroke-width: 0px;
+}
+.xgrid line{
+  stroke:lightgrey;
+  shape-rendering: crispEdges;
+  stroke-width: 1px;
+}
+.xgrid:last-child{
+  stroke:white !important;
+  shape-rendering: crispEdges !important;
+  stroke-width: 0px !important;
+}
+.ygrid line{
+  stroke:lightgrey;
+  shape-rendering: crispEdges;
+  stroke-width: 1px;
+}
+
 .legend {
     line-height: 18px;
     color: #555;
