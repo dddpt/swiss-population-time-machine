@@ -409,46 +409,46 @@ APP.initGraph = function(data){
 
     // Setting dimensions of the svg and padding between each value of the barplot
     APP.graph.width = $('#graphPart').width() - margin.left - margin.right;
-    APP.graph.height = 360 - margin.top - margin.bottom;
+    APP.graph.height = 320 - margin.top - margin.bottom;
 
     // Creating svg, appending attributes
     APP.graph.svg = d3.select("#graph")
-    .append("svg")
-    .attr("width", APP.graph.width + margin.left + margin.right)
-    .attr("height", APP.graph.height + margin.top + margin.bottom)
-    .append("g")
-    .attr("transform", `translate(${margin.left},${margin.top})`);
+      .append("svg")
+      .attr("width", APP.graph.width + margin.left + margin.right)
+      .attr("height", APP.graph.height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", `translate(${margin.left},${margin.top})`);
 
     // Adding div tooltip
     tooltipGraph = d3.select('#graph')
-    .append('div')
-    .attr('class', 'tooltipGraph')
-    .style('left', '0px')
-    .style('top', '0px')
-    .style('opacity',0);
+      .append('div')
+      .attr('class', 'tooltipGraph')
+      .style('left', '0px')
+      .style('top', '0px')
+      .style('opacity',0);
 
     // Adding axis
     APP.graph.svg.append('g')
-    .attr('class','xAxis')
-    .attr('transform', `translate(0,${APP.graph.height})`);
+      .attr('class','xAxis')
+      .attr('transform', `translate(0,${APP.graph.height})`);
 
     APP.graph.svg.append('g')
-    .attr('class', 'yAxis');
+      .attr('class', 'yAxis');
 
     // Adding axis labels
     APP.graph.svg.append("text")
-    .attr('class', 'axisLabel')
-    .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
-    .attr("transform", "translate("+ (20) +","+(35)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
-    .style('opacity', 0)
-    .text("Population");
+      .attr('class', 'axisLabel')
+      .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+      .attr("transform", "translate("+ (20) +","+(35)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
+      .style('opacity', 0)
+      .text("Population");
 
     APP.graph.svg.append("text")
-    .attr('class', 'axisLabel')
-    .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
-    .attr("transform", "translate("+ (APP.graph.width-(20)) +","+(APP.graph.height-(10))+")")  // centre below axis
-    .style('opacity', 0)
-    .text("Année");
+      .attr('class', 'axisLabel')
+      .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+      .attr("transform", "translate("+ (APP.graph.width-(20)) +","+(APP.graph.height-(10))+")")  // centre below axis
+      .style('opacity', 0)
+      .text("Année");
 
 
     // Calling method to update graph according to current data

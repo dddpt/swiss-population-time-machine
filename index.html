@@ -53,30 +53,30 @@
       <div class="col-lg-4 col-md-4 col-sm-4">
           <!-- TABLE FOR SLIDER AND ICONS -->
           <table>
+
+              <tr td width="100%">
+                  <div width="100%">
+                      <h4 >Population en <span id="slider1_val"></span></h4>
+                  </div>
+              </tr>
+
               <tr>
+                <span id="slideLabel">Choissez une année:</br></br></span>
+                <input id="slider1" class="slidBuffer" type="range" min=1200 max=2000 step=1 value=1>
+                <div id="slider1_scale" width="100%" style="text-align:center;">1200 à 2000</div>
+              
+              </tr>
+              <tr width="100%">
                 <div><svg style='position:relative;top:5px;' width="20px" height="20px"><circle cx="10" cy="10" r="10" fill="blue" opacity="0.6"></circle></svg> Données originales de population</div>
                 <div style="margin-bottom: 10px;"><svg style='position:relative;top:5px;' width="20px" height="20px"><circle cx="10" cy="10" r="10" fill="darkgreen" opacity="0.6"></circle></svg> Population extrapolée</div>
-              </tr>
-              <tr><span id="slideLabel">Choissez une année:</br></br></span></tr>
-              <!-- SLIDER1 -->
-              <tr>
-                  <td width="100%">
-                      <input id="slider1" class="slidBuffer" type="range" min=1200 max=2000 step=1 value=1>
-                      <output id="slider1_scale">1200 à 2000</output>
-                      <output >Année sélectionnée: <span id="slider1_val"></span></output>
-                  </td>
-                  <td  width="30%" height="50px">
-                      <div id="CheminFerBubble">
-                          <svg height="15" width="15">
-                              <!-- <circle cx="7" cy="7" r="6" stroke="black" stroke-width="1" fill="blue" opacity="0.7"/> --> -->
-                          </svg>
-                      </div>
-                  </td>
               </tr>
           </table>
       </div>
       <!-- GRAPH SECTION -->
       <div id="graphPart" class="col-lg-4 col-md-4 col-sm-4">
+          <div width="100%">
+              <h4>Évolution:</h4>
+          </div>
           <div id="graphLegend">
           </div>
           <!-- THE GRAPH GOES THERE -->
