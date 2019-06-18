@@ -74,6 +74,7 @@ td {
   stroke:lightgrey;
   shape-rendering: crispEdges;
   stroke-width: 1px;
+  opacity:0.5;
 }
 .xgrid:last-child{
   stroke:white !important;
@@ -84,6 +85,7 @@ td {
   stroke:lightgrey;
   shape-rendering: crispEdges;
   stroke-width: 1px;
+  opacity:0.5;
 }
 
 .legend {

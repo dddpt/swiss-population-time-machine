@@ -96,6 +96,26 @@
               
               A variation of the ordinary lorem ipsum text has been used in typesetting since the 1960s or earlier, when it was popularized by advertisements for Letraset transfer sheets. It was introduced to the information age in the mid-1980s by Aldus Corporation, which employed it in graphics and word-processing templates for its desktop publishing program PageMaker. Many popular word processors use this format as a placeholder. Some examples are Pages or Microsoft Word. 
           </p>
+          <h1></a>The middle-ages of Swiss communes population</h1>
+          <p>The aim of this project is to estimate population of swiss communes (=municipalities) for the last 8 centuries, put it on a beautiful map and share it with the world!
+          The data comes from the <a href="https://beta.hls-dhs-dss.ch" rel="nofollow">Swiss Historical Dictionary</a>, a wonderful online encyclopedia on Swiss history.</p>
+          <p>All communes have population data back to 1850 (start of the official Swiss Statistics); some have data going back to around 1400, and a rare few even have data going as far back as 1170!</p>
+          <p>Once this is done, it could always be possible to add <a href="https://map.geo.admin.ch/?topic=ivs&amp;lang=fr&amp;bgLayer=ch.swisstopo.pixelkarte-farbe&amp;layers=ch.astra.ivs-nat,ch.astra.ivs-nat-verlaeufe,ch.swisstopo.hiks-dufour,ch.swisstopo.hiks-siegfried&amp;E=2524453.86&amp;N=1157441.67&amp;zoom=4.446120007631386&amp;catalogNodes=340,350&amp;layers_visibility=true,false,false,false" rel="nofollow">roads</a>, historically used communes' names, etc. A boy can dream.</p>
+          
+          <h1></a>Status of the project:</h1>
+          <p>As of 16.06:</p>
+          <ul>
+          <li>scraping & cleaning is done for all communes existing in 2017 except canton Thurgau (2162 units), todo: no longer existing communes should be scraped</li>
+          <li>cleaning is done for all scraped communes, </li>
+          <li>extrapolation is done in a simplistic bruteforce way: done with the average growth rate of all communes having data in given timespan</li>
+          <li>Map is functional ;-) (With some mistakes, locations and population data having been joined with a fuzzy merge on communes' names)</li>
+          </ul>
+
+          <p>
+              <img src="2_pop_extrapolation/obs_distrib.png">
+              <img src="2_pop_extrapolation/first_obs.png">
+              <img src="2_pop_extrapolation/avg_ygr.png">
+          </p>
           
       </div>
     </div>

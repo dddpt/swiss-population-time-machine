@@ -19,7 +19,6 @@ The names speak for themselves:
 # Status of the project:
 
 As of 16.06:
-- scraping is done for all communes existing in 2017 (2242 units), todo: old communes should be scraped
-- cleaning is done for all scraped communes, except canton Thurgau (+-100 communes)
-- extrapolation is done in a simplistic bruteforce way: done with the average growth rate of all communes having data in given timespan
+- scraping & cleaning is done for all communes existing in 2017 except canton Thurgau (2162 units), todo: no longer existing communes should also be scraped&cleaned
+- extrapolation is done in a simplistic bruteforce way: done with the average growth rate of all communes having data in given timespan.
 - Map is functional ;-) (With some mistakes, locations and population data having been joined with a fuzzy merge on communes' names)
