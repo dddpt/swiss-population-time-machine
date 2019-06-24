@@ -259,7 +259,7 @@ APP.makeCommunes = async function(){
         .append("circle")
         .attr('cx', function(d){return proj.latLngToLayerPoint(d.latLng).x;}) // projecting points
         .attr('cy', function(d){return proj.latLngToLayerPoint(d.latLng).y;}) // projecting points
-        .attr('r', 3)
+        .attr('r', 0)
         .attr('fill', function(d){
             return "blue"
         })
