@@ -93,45 +93,49 @@
         <h3>Bienvenue sur la machine à remonter le temps de la population Suisse!</h3>
         <p>
           Le but de ce projet est de collecter les données de population de communes disponibles sur le
-          <a href="https://beta.hls-dhs-dss.ch" target="_blank" rel="nofollow">Dictionnaire Historique de la Suisse (DHS)</a> (une ressource géniale pour les amateurs d'histoire!),
-          de les utiliser pour extrapoler les populations de toutes les communes Suisses à travers le temps;
-          finalement, il s'agit bien sûr de mettre tout cela sur une belle carte et de partager le résultat!
+          Dictionnaire Historique de la Suisse (<a href="https://beta.hls-dhs-dss.ch" target="_blank" rel="nofollow">DHS</a>, une ressource fascinante pour les amateurs d'histoire)
+          et de les utiliser pour extrapoler les populations de toutes les communes Suisses à travers le temps.
+          Finalement, il s'agit de visualiser le tout et de le partager. À terme, pourquoi ne pas ajouter les routes de
+          <a href="https://map.geo.admin.ch/?topic=ivs&amp;lang=fr&amp;bgLayer=ch.swisstopo.pixelkarte-farbe&amp;layers=ch.astra.ivs-nat,ch.astra.ivs-nat-verlaeufe,ch.swisstopo.hiks-dufour,ch.swisstopo.hiks-siegfried&amp;E=2524453.86&amp;N=1157441.67&amp;zoom=4.446120007631386&amp;catalogNodes=340,350&amp;layers_visibility=true,false,false,false" target="_blank" rel="nofollow">l'IVS</a>?
+
         </p>
         <p>
           Toutes les communes Suisses ont des données remontant à 1850, le début des statistiques officiels.
-          Une bonne moitié ont des données remontant à 1798 ou 1764.
+          Plus de la moitié ont des données remontant à 1798 ou 1764.
           Les cantons de Vaud et de Zürich ont une bonne couverture jusqu'au 15ième siècle, le Tessin jusqu'au 16ième.
-          Les autres sont plus lacunaires...
+          Les autres sont plus lacunaires.
         </p>
         <p>
-          Fait amusant: la commune ayant les données les plus anciennes n'est autre que
-          <a href="https://beta.hls-dhs-dss.ch/Articles/002445/?language=fr" target="_blank" rel="nofollow">Lussy-sur-Morges</a>
-          , avec 15 foyers (ou 74 habitants) en 1177 (!).
+          La commune ayant les données les plus anciennes n'est autre que
+          <a href="https://beta.hls-dhs-dss.ch/Articles/002445/?language=fr" target="_blank" rel="nofollow">Lussy-sur-Morges</a>,
+          avec 15 foyers (74 habitants) en 1177.
         </p>
         <p>
           Est-ce que ces disparités de données sont dûes à une meilleure collection des données et comptabilité à l'époque médiévale?
-          Ou les données n'ont simplement pas encore été récoltées par de patients historiens? Pour le moment, aucune conclusion: tout dépend des sources du DHS.
+          Ou les données n'ont simplement pas encore été récoltées par de patients historiens?
           Le seigneur de Lussy-sur-Morges était en tout cas bien diligent...
         </p>
         <p>
-          Cette page montre un projet en cours d'élaboration! Rien n'est fini.
-          Nous prenons avec plaisir tout feedback sur comment l'améliorer. Nous ne sommes que des novices dans le domaine après tout.
+          Cette page présente un projet en cours d'élaboration! Rien n'est fini.
+          Nous prenons avec plaisir tout feedback sur comment l'améliorer. Nous ne sommes que des novices dans le domaine.
         </p>
 
         <h3>Statut du projet</h3>
         <p>
-          Il y a 4 étapes principales pour récolter et afficher les données: 1) récolte des données, 2) nettoyage, 3) extrapolation et 4) affichage.
+          Il y a 4 étapes principales: 1) récolte des données, 2) nettoyage, 3) extrapolation et 4) affichage.
         </p>
         <p>Etat au 22 Juin 2019:</p>
-        <ul>
-          <li>La récolte est faite pour toute les communes existantes en 2017.</li>
-          <li>Le nettoyage est fait pour toutes les communes récoltées à l'exception du canton de Thurgau.
-            Cela inclut aussi la transformation de données de population en nombre de foyer en nombre d'habitants.</li>
+        <ol>
+          <li>La récolte des données est faite pour toute les communes existantes en 2017.</li>
+          <li>Le nettoyage est fait pour toutes les communes récoltées à l'exception du canton de Thurgau (cela inclut aussi la transformation de données de population de nombre de foyers à nombre d'habitants).</li>
           <li>L'extrapolation est faite d'une manière simpliste pour toutes les communes ayant des données en 1850 dans le DHS.</li>
           <li>La carte est fonctionnelle, avec quelques erreurs de positionnement de communes.</li>
-        </ul>
+        </ol>
+        <p>
+          Il reste encore du travail: gérer les fusions de communes et les communes disparues, corriger les points géographiques correspondant à chaque commune, utiliser/développer une méthodologie valide pour extrapoler les données manquantes, assurer la qualité et les sources de donneés du DHS.
+        </p>
 
-        <h3>Méthodologie</h3>
+        <h3>Aspects techniques</h3>
         <p>
           Voici les observations disponibles à travers le temps:
           <img src="2_pop_extrapolation/obs_distrib.png">
@@ -152,15 +156,14 @@
 
         <h3>Que faire pour nous aider</h3>
         <p>
-          Le Chenit se trouve-t'il juste au nord de Montreux? Certainement pas! Si vous remarquez une coquille: indiquez la nous!<br/>
-          Si vous avez un script pour transformer un nom de commune en un point géographique, on prend! On devrait bientôt en écrire un avec l'API Google.
+          La commune du Chenit se trouve-t'elle juste au nord de la ville de Montreux? Certainement pas! Si vous remarquez une coquille: indiquez-la nous!
         </p>
         <p>
           Vous connaissez une méthode révolutionnaire d'afficher ces données? On prend.
         </p>
         <p>
           Vous êtes un habitués des statistiques historiques?
-          Nous prenons volontiers toutes les informations pertinentes, que ce soit des sources de données supplémentaires,
+          Nous prenons volontiers toutes les informations pertinentes, que ce soit des sources de données supplémentaires ou
           l'information que tout ce travail aurait déjà été fait par d'autres.
           Nous nous jetterons sur toute littérature scientifique sur le sujet tels des hyènes sur une carcasse. Nous en manquons cruellement.
         </p>
