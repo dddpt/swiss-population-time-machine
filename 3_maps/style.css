@@ -16,7 +16,8 @@ div.tooltip {
     color: white;
     text-align: center;
     padding: 8px;
-    margin-top: -50px;
+    margin-top: -150px;
+    margin-left: -30px;
 }
 
 div.tooltipGraph {
