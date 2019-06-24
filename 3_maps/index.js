@@ -77,7 +77,7 @@ Initializing map - leaflet with cartodb basemap and tooltip ready
 *****/
 APP.initMap = async function(){
     // Initiaize the map - definig parameters and adding cartodb basemap
-    map = new L.map("map", {center: [	47,7.5], zoom: 9, minZoom: 7, maxZoom: 20, maxBounds: ([[44.5, 4.5],[49, 12]])});
+    map = new L.map("map", {center: [	46.8,8.2], zoom: 8, minZoom: 7, maxZoom: 20, maxBounds: ([[44.5, 4.5],[49, 12]])});
     let cartodb = L.tileLayer('https://api.mapbox.com/styles/v1/nvallott/cjcw1ex6i0zs92smn584yavkn/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibnZhbGxvdHQiLCJhIjoiY2pjdzFkM2diMWFrMzJxcW80eTdnNDhnNCJ9.O853joFyvgOZv7y9IJAnlA', {
     // let cartodb = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
         // attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy;<a href="https://carto.com/attribution">CARTO</a>'
@@ -362,7 +362,7 @@ APP.updateMap = function(){
       .attr("r",d=>{
         //let hy1850 = d.hab_year.filter(hy=>hy.year==1850)
         //let radius = hy1850.length>0? hy1850[0].pop: 300
-        d.circleSize = Math.sqrt(+d.pop_calculator(APP.currentYear)/50)
+        d.circleSize = Math.sqrt(+d.pop_calculator(APP.currentYear))/14
         return d.circleSize
       })
       .attr('fill', function(d){
