@@ -155,6 +155,9 @@ https://www.demographic-research.org/Volumes/Vol40/23/
 http://www.chronologie-jurassienne.ch/fr/Accueil.html#
 
 
+Histhub.ch
+https://histhub.ch/news/
+
 GEOVISTORY:
 https://kleiolab.ch/
 https://tube.switch.ch/cast/videos/5f05fea2-25b2-4edb-8b58-ae4c02cf5ca1
