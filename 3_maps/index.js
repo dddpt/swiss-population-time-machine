@@ -1,32 +1,58 @@
+"use strict";
+
 // SPTM - Didier Dupertuis & Nicolas Vallotton - Avril 2019
 
 // Creating APP object for storing all Methods
-APP = {
-  currentYear: 1850,
-  communes:[]
+let APP = {
+  currentYear: 1536,
+  // list of communes
+  communes:[],
+  communesFile: "3_maps/communes_geo.csv",
+  ygrs:[],
+  ygrFile: "3_maps/avg_yearly_growth_rates.csv",
+  graph:{
+    // Array of 0 to initialize correct number of dots for scatterplot
+    data:[],
+    // Boolean to check if graph has already been initialized
+    initialized: false,
+    // Max nb of communes to display on graph:
+    maxSize: 3,
+    // returns a class for points and lines of given commune
+    pointsClass: commune => 'point-'+commune.name.replace(/\W/g,"-"),
+    lineClass: commune => 'line-'+commune.name.replace(/\W/g,"-"),
+    legendId: commune => 'legend-'+commune.name.replace(/\W/g,"-"),
+    counter:0,
+    // given a number returns
+    colors: [0.2,0.4,0.6,0.8].map(d3.interpolateRainbow),
+    colorScale: function(){
+      let usedColors = APP.graph.data.map(c=>c.graphColor)
+      let freeColors = APP.graph.colors.filter(color => !usedColors.includes(color))
+      if(freeColors.length>0){
+        return freeColors[0]
+      }
+      return "black"
+    },
+    transitionsDuration: 1000
+  }
 };
 
 /*****
 Declaring global variables
 *****/
 
-cl = console.log
-ct = console.table
+let cl = console.log
+let ct = console.table
 
 // Storing size of the browser viewport
 let windowHeight = $(window).height();  // returns height of browser viewport
 let windowWidth = $(window).width();  // returns width of browser viewport
 
-
 // Map
 let map;
-// Tooltip of the map
+// Tooltip of the map&graph
 let tooltipMap;
+let tooltipGraph;
 
-// Array of 0 to initialize correct number of dots for scatterplot
-let dataGraph = [0,0,0,0,0,0,0,0,0,0];
-// Boolean to check if graph has already been initialized
-let graphInitialized = false;
 
 // Correspondance table for slider values, buffer label in meters, buffer sizes in pixel and pop values for each
 // let bufferVal = []; // initialized empty
@@ -37,21 +63,30 @@ let graphInitialized = false;
 /*****
 Initializing the whole script of the page
 *****/
-APP.main = function(){
-    APP.initMap();
+APP.main = async function(){
+    await APP.initMap();
     APP.sliderevent();
+    await APP.loadYearlyGrowthRates()
+
+    document.getElementById("slider1").value = APP.currentYear; 
+    APP.updateYear()
 };
 
 /*****
 Initializing map - leaflet with cartodb basemap and tooltip ready
 *****/
-APP.initMap = function(){
+APP.initMap = async function(){
     // Initiaize the map - definig parameters and adding cartodb basemap
-    map = new L.map("map", {center: [	47,7.5], zoom: 9, minZoom: 7, maxZoom: 20, maxBounds: ([[44.5, 4.5],[49, 12]])});
+    map = new L.map("map", {center: [	46.8,8.2], zoom: 8, minZoom: 7, maxZoom: 20, maxBounds: ([[44.5, 4.5],[49, 12]])});
     let cartodb = L.tileLayer('https://api.mapbox.com/styles/v1/nvallott/cjcw1ex6i0zs92smn584yavkn/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibnZhbGxvdHQiLCJhIjoiY2pjdzFkM2diMWFrMzJxcW80eTdnNDhnNCJ9.O853joFyvgOZv7y9IJAnlA', {
     // let cartodb = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
         // attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy;<a href="https://carto.com/attribution">CARTO</a>'
     });
+
+    // Getting tooltip ready for showing data
+    tooltipMap = d3.select('#map')
+      .append('div')
+      .attr('class', 'tooltip');
 
     // Add the cartodb layer to the map
     cartodb.addTo(map);
@@ -59,13 +94,7 @@ APP.initMap = function(){
     // Calling metho to create heatmap overlay
     // APP.makeHeatMap();
     // Calling method to create - has to wait for the map to be created
-    APP.makeCommunes();
-
-    // Getting tooltip ready for showing data
-    tooltipMap = d3.select('#map')
-    .append('div')
-    .attr('class', 'tooltip');
-
+    await APP.makeCommunes();
 };
 
 /*****
@@ -131,8 +160,92 @@ Coloring HTML part for the legend
 // }
 
 /*****
-Creating points for PT stops and adding them to the map
+Loading yearly growth rates data
 *****/
+
+APP.loadYearlyGrowthRates = async function(){
+  APP.ygrs = await d3.dsv(";",APP.ygrFile, function(ygr){
+    ygr.year=parseInt(ygr.year)
+    ygr.data_pop=parseInt(ygr.data_pop)
+    ygr.duration=parseInt(ygr.duration)
+    ygr.ygr=parseFloat(ygr.ygr)
+    ygr.gr=parseFloat(ygr.gr)
+    return ygr
+  })
+}
+
+// calculates total growth rate between two given year, assumes y1<y2
+APP.calculateGrowthRateOLD = function (y1,y2){
+  let ygrs12 = APP.ygrs.filter((ygr,i) => 
+    (ygr.year>=y1 || (APP.ygrs[i+1] && APP.ygrs[i+1].year>y1)) &&
+     ygr.year<y2 )
+  let ygr1 = ygrs12[0]
+  let ygr2 = ygrs12[ygrs12.length-1]
+  ygrs12 = ygrs12.filter((ygr,i) => i>0 && i< ygrs12.length-1)
+  let y1Duration = ygrs12[0].year-y1
+  let y2Duration = y2-ygr2.year
+  let gr1 = ygr1.ygr**y1Duration
+  let gr2 = ygr2.ygr**y2Duration
+  let gr12 = ygrs12.reduce((tot,ygr) => tot*ygr.gr,gr1*gr2)
+  return gr12
+}
+APP.calculateGrowthRate = function (y1,y2){
+  let ygrs12 = APP.ygrs.filter((ygr,i) => 
+    (ygr.year>=y1 || (APP.ygrs[i+1] && APP.ygrs[i+1].year>y1)) &&
+     ygr.year<y2 )
+  if(ygrs12.length>0){
+    let ygrLast = ygrs12[ygrs12.length-1]
+    let y2Duration = y2 - ygrLast.year
+    ygrs12[ygrs12.length-1] = {
+      year: ygrLast.year,
+      ygr: ygrLast.ygr,
+      gr: ygrLast.ygr ** y2Duration,
+      duration: y2Duration,
+    }
+
+    let ygrFirst = ygrs12[0]
+    let y1Duration = ygrFirst.duration - (y1-ygrFirst.year)
+    ygrs12[0] = {
+      year: y1,
+      ygr: ygrFirst.ygr,
+      gr: ygrFirst.ygr ** y1Duration,
+      duration: y1Duration,
+    }
+
+    return ygrs12.reduce((tot,ygr) => tot*ygr.gr, 1)
+  }
+  return null
+}
+
+// extrapolate pop of a commune in the past
+APP.extrapolatePop = function(commune, year){
+  let hy1 = commune.hab_year[0]
+  //cl("year: ",year)
+  //cl("hy1: ", hy1, ", bool(hy1): ", Boolean(hy1), ", hy1.year: ", hy1.year, ", hy1.year>year: ", hy1.year>year, ", hy1 && hy1.year>year: ", hy1 && hy1.year>year)
+  if(hy1 && hy1.year>year){
+    return hy1.pop / APP.calculateGrowthRate(year,hy1.year)
+  }
+  return null
+}
+
+function pop_calculator(commune){
+  commune.pop_interpolator = exponentialInterpolator(commune.hab_year.map(hy=>[hy.year,hy.pop]))
+  commune.pop_extrapolator = year => APP.extrapolatePop(commune,year)
+  let hy1 = commune.hab_year[0]
+  return function(year){
+    if(hy1 && year<hy1.year){
+      return commune.pop_extrapolator(year)
+    }
+    else{
+      return commune.pop_interpolator(year)
+    }
+  }
+}
+
+/*****
+Creating points for communes and adding them to the map
+*****/
+let du = 32
 APP.makeCommunes = async function(){
     console.log("coucou");
     // Empty array to store
@@ -146,17 +259,9 @@ APP.makeCommunes = async function(){
         .append("circle")
         .attr('cx', function(d){return proj.latLngToLayerPoint(d.latLng).x;}) // projecting points
         .attr('cy', function(d){return proj.latLngToLayerPoint(d.latLng).y;}) // projecting points
-        .attr('r', 3)
+        .attr('r', 0)
         .attr('fill', function(d){
             return "blue"
-            // different fill color according to transport type
-            // if(d.MOYEN_TRAN.match('CheminFer')){
-            //     return "blue"
-            // } else if(d.MOYEN_TRAN == 'Bus'){
-            //     return "lime"
-            // } else {
-            //     return "turquoise"
-            // }
         })
         .style('position', 'relative')
         // .style('stroke','black')
@@ -175,10 +280,16 @@ APP.makeCommunes = async function(){
     });
 
     // Loading the public transportation datas
-    await d3.dsv(";","communes_geo.csv", function(commune){
-      commune.hab_year = JSON.parse(commune.hab_year.replace(/'/g,'"'))
-      commune.raw_hab_year = JSON.parse(commune.raw_hab_year.replace(/'/g,'"'))
-      commune.pop_interpolator = exponentialInterpolator(commune.hab_year.map(hy=>[hy.year,hy.pop]))
+    await d3.dsv(";",APP.communesFile, function(commune){
+      commune.hab_year = JSON.parse(commune.hab_year.replace(/'/g,'"') )
+      commune.hab_year = commune.hab_year.sort((a,b)=>a.year-b.year)
+      //cl("commune.hab_year: ", commune.raw_hab_year.replace(/'/g,'"'))
+      //commune.raw_hab_year = JSON.parse(commune.raw_hab_year.replace(/'/g,'"'))
+      //commune.pop_interpolator = exponentialInterpolator(commune.hab_year.map(hy=>[hy.year,hy.pop]))
+      commune.pop_calculator = pop_calculator(commune)
+      commune.canton = commune.canton_x
+      commune.canton_x = null
+      commune.canton_y = null
       // prepare interpolation:
       // points = [{x:1,y:8},{x:3,y:3},{x:9,y:33},{x:19,y:11},{x:21,y:2},{x:33,y:12}]
       // interpolation.single(points)({x:4})
@@ -202,34 +313,10 @@ APP.makeCommunes = async function(){
             .duration(100)
             .attr('r', function(d){
                 return 1.3*d.circleSize
-                // // For each type of buffer, get the pixel size in the correspondance table bufferVal
-                // if(d.MOYEN_TRAN.match('CheminFer')){
-                //     return bufferVal[$('#slider1').val()-1].bufferPx;
-                // } else if(d.MOYEN_TRAN == 'Bus'){
-                //     return bufferVal[$('#slider3').val()-1].bufferPx;
-                // } else {
-                //     return bufferVal[$('#slider2').val()-1].bufferPx;
-                // }
             });
             // Showing value of buffer in the tooltip
             tooltipMap.html(function(){
-                // For each type of buffer, get the population value in the correspondance table bufferVal
-                // let pop = "";
-                // if(d.MOYEN_TRAN.match('CheminFer')){
-                //     pop = d[bufferVal[$('#slider1').val()-1].pop];
-                // } else if(d.MOYEN_TRAN == 'Bus'){
-                //     pop = d[bufferVal[$('#slider3').val()-1].pop];
-                // } else {
-                //     pop = d[bufferVal[$('#slider2').val()-1].pop];
-                // }
-                // Replace unknown values with 0
-                // if(pop == "NA"){
-                //     pop = 0;
-                // }
-                // Return actual innerHTML text
-                // return "hello";
-                return `${d.name}`
-                // Pop : ${d.X}`;
+                return `${d.name}, pop: ${Math.round(d.pop_calculator(APP.currentYear))}`
             })
             .transition()
             .duration(50)
@@ -239,19 +326,19 @@ APP.makeCommunes = async function(){
         })
         // Change html header for the graphic when buffer is clicked
         .on('click', function(d){
-            $('#graphLegend').html(function(){
+            /*$('#graphLegend').html(function(){
                 return `<table width="100%">
-                <tr id="arret"> <td> </td> <td>  ${d.Ortschaftsname} </td> <td> </td> </tr>
+                <tr id="arret"> <td> </td> <td>  ${APP.currentYear} </td> <td> </td> </tr>
                 </table>
                 <table width="100%">
-                <tr> <td> Canton : ${d.Kanton} </td> <td> &nbsp; </td> <td> Numéro OFS : ${d.BFS_Nr} </td> </tr>
+                <tr> <td> Canton : ${d.canton} </td> <td> &nbsp; </td> <td> Numéro OFS : ${d.bfsnr} </td> </tr>
                 </table>`;
-            })
+            })*/
             // If the graph has been launched once, update it - Else, initialize it
-            if(graphInitialized){
-                APP.updateGraph(d);
+            if(APP.graph.initialized){
+                APP.addCommuneToGraph(d);
             } else {
-                graphInitialized = true;
+                APP.graph.initialized = true;
                 APP.initGraph(d);
             }
         })
@@ -267,8 +354,6 @@ APP.makeCommunes = async function(){
         });
     })
 
-
-    APP.updateMap()
 }
 
 APP.updateMap = function(){
@@ -277,8 +362,16 @@ APP.updateMap = function(){
       .attr("r",d=>{
         //let hy1850 = d.hab_year.filter(hy=>hy.year==1850)
         //let radius = hy1850.length>0? hy1850[0].pop: 300
-        d.circleSize = Math.sqrt(+d.pop_interpolator(APP.currentYear)/50)
+        d.circleSize = Math.sqrt(+d.pop_calculator(APP.currentYear))/14
         return d.circleSize
+      })
+      .attr('fill', function(d){
+        d.hab_year[0]
+        if(d.hab_year[0] && d.hab_year[0].year<=APP.currentYear){
+          return "blue"
+        } else{
+          return "darkgreen"
+        }
       })
 };
 
@@ -294,13 +387,15 @@ Updating innerHTML of buffer size values according to slider value using convers
 *****/
 APP.sliderevent = function(){
     $('.slidBuffer').change(function(){
-        //$('#slider1_val').html(bufferVal[$('#slider1').val()-1].buffer);
-        cl("$('#slider1').val()")
-        cl($('#slider1').val())
         APP.currentYear = $('#slider1').val()
-        $("#slider1_val").html(APP.currentYear)
-        APP.updateMap()
+        APP.updateYear()
     });
+}
+
+APP.updateYear = function(){
+  $("#slider1_val").html(APP.currentYear)
+  $("#nb-communes-data").html(APP.communes.filter(c => c.hab_year[0]? c.hab_year[0].year<=APP.currentYear:false).length)
+  APP.updateMap()
 }
 
 /*****
@@ -311,179 +406,259 @@ APP.initGraph = function(data){
     $('#tuto').remove();
 
     // Creating margins for the svg
-    margin = {top : 40, right : 40, bottom : 55, left : 52};
+    let margin = {top : 20, right : 40, bottom : 30, left : 52};
 
     // Setting dimensions of the svg and padding between each value of the barplot
-    wGraph = $('#graphPart').width() - margin.left - margin.right;
-    hGraph = 400 - margin.top - margin.bottom;
+    APP.graph.width = $('#graphPart').width() - margin.left - margin.right;
+    APP.graph.height = 320 - margin.top - margin.bottom;
 
     // Creating svg, appending attributes
-    svgGraph = d3.select("#graph")
-    .append("svg")
-    .attr("width", wGraph + margin.left + margin.right)
-    .attr("height", hGraph + margin.top + margin.bottom)
-    .append("g")
-    .attr("transform", `translate(${margin.left},${margin.top})`);
+    APP.graph.svg = d3.select("#graph")
+      .append("svg")
+      .attr("width", APP.graph.width + margin.left + margin.right)
+      .attr("height", APP.graph.height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", `translate(${margin.left},${margin.top})`);
 
     // Adding div tooltip
     tooltipGraph = d3.select('#graph')
-    .append('div')
-    .attr('class', 'tooltipGraph')
-    .style('left', '0px')
-    .style('top', '0px')
-    .style('opacity',0);
+      .append('div')
+      .attr('class', 'tooltipGraph')
+      .style('left', '0px')
+      .style('top', '0px')
+      .style('opacity',0);
 
-    // Adding dots with radius 0px
-    svgGraph.selectAll('.point')
-    .data(dataGraph)
-    .enter()
-    .append('circle')
-    .attr('class','point')
-    .attr('cx', function(d){
-        return 0;
-    })
-    .attr('cy', hGraph)
-    .attr('r',0)
-    .style('fill', 'white');
+      // Adding grid
+      // X gridlines
+      APP.graph.svg.append("g")			
+        .attr("class", "xgrid")
+        .attr("transform", "translate(0," + APP.graph.height + ")")
+  
+      // Y gridlines
+      APP.graph.svg.append("g")			
+        .attr("class", "ygrid")
 
     // Adding axis
-    svgGraph.append('g')
-    .attr('class','xAxis')
-    .attr('transform', `translate(0,${hGraph})`);
+    APP.graph.svg.append('g')
+      .attr('class','xAxis')
+      .attr('transform', `translate(0,${APP.graph.height})`);
 
-    svgGraph.append('g')
-    .attr('class', 'yAxis');
+    APP.graph.svg.append('g')
+      .attr('class', 'yAxis');
 
     // Adding axis labels
-    svgGraph.append("text")
-    .attr('class', 'axisLabel')
-    .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
-    .attr("transform", "translate("+ (20) +","+(35)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
-    .style('opacity', 0)
-    .text("Population");
+    APP.graph.svg.append("text")
+      .attr('class', 'axisLabel')
+      .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+      .attr("transform", "translate("+ (20) +","+(35)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
+      .style('opacity', 0)
+      .text("Population");
 
-    svgGraph.append("text")
-    .attr('class', 'axisLabel')
-    .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
-    .attr("transform", "translate("+ (wGraph-(75)) +","+(hGraph-(10))+")")  // centre below axis
-    .style('opacity', 0)
-    .text("Zone tampon en mètres");
+    APP.graph.svg.append("text")
+      .attr('class', 'axisLabel')
+      .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+      .attr("transform", "translate("+ (APP.graph.width-(20)) +","+(APP.graph.height-(10))+")")  // centre below axis
+      .style('opacity', 0)
+      .text("Année");
 
-    // Adding line
-    svgGraph.append('path')
-    .attr('class','line')
-    .style('stroke','none');
 
     // Calling method to update graph according to current data
-    APP.updateGraph(data);
+    APP.addCommuneToGraph(data);
+}
+
+APP.addCommuneToGraph = function(newCommune){
+  //cl("APP.addCommuneToGraph() new commune: ",newCommune.name)
+
+  if(!APP.graph.data.find(c => c.name==newCommune.name)){
+    newCommune.graphColor = APP.graph.colorScale()
+    APP.graph.counter = APP.graph.counter+1
+
+    // insert newCommune at beginning of array 
+    APP.graph.data.unshift(newCommune)
+
+    APP.updateGraph()
+  }
+}
+
+APP.removeCommuneFromGraph = function(communeToRemove){
+  cl("APP.removeCommuneFromGraph() commune to remove: ",communeToRemove.name)
+
+  let ctrIndex = APP.graph.data.findIndex(c => c.name==communeToRemove.name)
+
+  cl("ctrIndex:", ctrIndex)
+
+  if(ctrIndex!=-1){
+    APP.graph.data.splice(ctrIndex,1)
+
+    APP.updateGraph()
+  }
 }
 
 /*****
 Updating graph - put all dots in place according to new data, rescale axis and and translate line
 *****/
-APP.updateGraph = function(data) {
-
-    // Reset datagraph as empty array
-    dataGraph = [];
-    // Formatting data to be used on scatterplot
-    for(i = 1; i <= 10; i++){
-        string = `pop${i*100}m`;
-        dataGraph.push({"size": i*100, "pop": +data[string]});
-    }
-
-    // Replacing falsey values (here NaN) with 0
-    dataGraph.forEach(function(a){
-        a.pop = a.pop || 0;
-    })
-
+APP.updateGraph = function() {
+    
     // Setting up X scale and axis
-    xScale = d3.scaleLinear().range([0,wGraph]).domain([0,1000]);
-    xAxis = d3.axisBottom().scale(xScale);
+    let xScale = d3.scaleLinear().range([0,APP.graph.width]).domain([1200,2000]);
+    let xAxis = d3.axisBottom().scale(xScale);
+
+    // only keep the first APP.graph.maxSize elements 
+    APP.graph.data = APP.graph.data.filter((c,i)=> i<APP.graph.maxSize)
 
     // Setting up Y scale and axis
-    let yMin = d3.min(dataGraph, function(d){return d.pop});
-    let yMax = d3.max(dataGraph, function(d){return d.pop})
-    yScale = d3.scaleLinear().range([hGraph,0]).domain([yMin,yMax]);
-    yAxis = d3.axisLeft().scale(yScale);
-
-    // Declare new svg line with new coordinates
-    let line = d3.line()
-    .x(function(d){
-        return xScale(d.size);
-    })
-    .y(function(d){
-        return yScale(d.pop);
-    });
+    let yMax = d3.max(APP.graph.data.filter((c,i)=> i<APP.graph.maxSize).map(commune => commune.hab_year.map(hy =>hy.pop)).flat())
+    let yScale = d3.scaleLinear().range([APP.graph.height,0]).domain([0,1.1*yMax]);
+    let yAxis = d3.axisLeft().scale(yScale);
 
     // Rescale axis
-    svgGraph.select('.xAxis')
-    .transition()
-    .duration(1000)
-    .call(xAxis)
-    .attr('x', wGraph)
-    .attr('y', -3);;
+    APP.graph.svg.select('.xAxis')
+      .transition()
+      .duration(APP.graph.transitionsDuration)
+      .call(xAxis)
+      .attr('x', APP.graph.width)
+      .attr('y', -3);
 
-    svgGraph.select('.yAxis')
-    .transition()
-    .duration(1000)
-    .call(yAxis)
-    .attr('y',6)
-    .attr('dy', '.71em');
+    APP.graph.svg.select('.yAxis')
+      .transition()
+      .duration(APP.graph.transitionsDuration)
+      .call(yAxis)
+      .attr('y',6)
+      .attr('dy', '.71em');
 
-    svgGraph.selectAll('.axisLabel')
-    .style('opacity', 1);
+    APP.graph.svg.selectAll('.axisLabel')
+      .style('opacity', 1);
 
-    // Remap all dots according to new values
-    svgGraph.selectAll('.point')
-    .data(dataGraph)
-    .transition()
-    .duration(1000)
-    .attr('cx', function(d){
-        return xScale(d.size)
-    })
-    .attr('cy', function(d){
-        return yScale(d.pop)
-    })
-    .attr('r',6)
-    .style('opacity', 0.7)
-    .style('fill','red');
+    // Rescale grid
+    APP.graph.svg.select('.xgrid')
+      .transition()
+      .duration(APP.graph.transitionsDuration)
+      .call(xAxis
+        .tickSize(-APP.graph.height)
+        .tickFormat("")
+      )
+      .attr('x', APP.graph.width)
 
-    // Translate line according to new coordinates
-    svgGraph.select('.line')
-    .transition()
-    .duration(1000)
-    .attr('d',line(dataGraph))
-    .style('stroke','black')
-    .style('stroke-width',0.7)
-    .style('fill','none');
+    APP.graph.svg.select('.ygrid')
+      .transition()
+      .duration(APP.graph.transitionsDuration)
+      .call(yAxis
+        .tickSize(-APP.graph.width)
+        .tickFormat("")
+      )
 
-    // Interaction events on graphic
-    svgGraph.selectAll('.point')
+
+    // create the legend
+    let legendDiv = d3.select("#graphLegend2").selectAll(".graph-commune-legend").data(
+      APP.graph.data.filter((c,i)=>i<APP.graph.maxSize),
+      function(c){return c? "legend-"+c.name : this.id} // /!\ function(){} needed here! arrow func not allowed
+    )
+
+    let legendDivEnter = legendDiv.enter()
+      .append("div")
+      .attr("id", APP.graph.legendId)
+      .attr("class","graph-commune-legend")
+    legendDivEnter.append("span")
+      .html("x ")
+      .style("cursor", "pointer")
+      .on("click", APP.removeCommuneFromGraph)
+    legendDivEnter.append("span")
+      .html(c => c.name)
+      .style('color', c => c.graphColor);
+    legendDivEnter.append("span")
+      .html(" (")
+    legendDivEnter.append("a")
+      .attr("href", c=> "https://beta.hls-dhs-dss.ch"+c.url.replace("de","fr"))
+      .attr("target","_blank")
+      .html("dhs")
+    legendDivEnter.append("span")
+      .html(")")
+
+    legendDiv.exit().remove()
+
+    // returns a function to draw a line (the newLine simply has y=0 all along)
+    let interpolatedLine = d3.line().curve(d3.curveLinear).x( hy=>xScale(hy.year) ).y( hy=> yScale(hy.pop) );
+    let newLine =          d3.line().curve(d3.curveLinear).x( hy=>xScale(hy.year) ).y(yScale(0));
+
+    // LINES
+    let hyLines = APP.graph.svg.selectAll(".line").data(
+      APP.graph.data.filter((c,i)=>i<APP.graph.maxSize),
+      function(c){return c? APP.graph.lineClass(c) : this.id} // /!\ function(){} needed here! arrow func not allowed
+    )
+    let hyLinesEnter = hyLines.enter()
+      .append("path")
+      .attr("id",APP.graph.lineClass)
+      .attr("class","line")
+      .attr("d", c =>  newLine(c.hab_year))
+      .style('stroke',c => c.graphColor)
+      //.attr("clip-path", "url(#clipTemp)")
+      .attr("fill","none")
+      //.attr("d", c => interpolatedLine(c.hab_year))
+    
+    hyLines.exit().remove()
+
+    hyLines = hyLines.merge(hyLinesEnter)
+      .transition().duration(APP.graph.transitionsDuration)
+      .attr("d", c => interpolatedLine(c.hab_year))
+
+      
+    // POINTS
+    let hyPoints = APP.graph.svg.selectAll(".points-g").data(
+      APP.graph.data.filter((c,i)=>i<APP.graph.maxSize),
+      function(c){return c? APP.graph.pointsClass(c) : this.id} // /!\ function(){} needed here! arrow func not allowed
+    )
+      
+    let hyPointsEnter = hyPoints.enter()
+      .append('g')
+      .attr('id', APP.graph.pointsClass)
+      .attr('class', "points-g")
+      .each(function(commune){
+        let points = d3.select(this).selectAll(".point").data(commune.hab_year)
+        points.enter()
+          .append('circle')
+          .attr('class', "point")
+          .attr('cx', hy=>xScale(hy.year))
+          .attr('cy', yScale(0))
+          .attr('r',3)
+          .style('fill',commune.graphColor);
+      })
+
+    hyPoints.exit().remove()
+
+    hyPoints = hyPoints.merge(hyPointsEnter)
+      .each(function(commune){
+        d3.select(this).selectAll(".point")
+          .transition().duration(APP.graph.transitionsDuration)
+          .attr('cx', hy=>xScale(hy.year))
+          .attr('cy', hy=>yScale(hy.pop))
+      })
+
+     // Interaction events on graphic
+    APP.graph.svg.selectAll('.point')
     // Adding information on specific point to the tooltip on mouseover
-    .on('mouseover', function(d){
-        let cx = d3.select(this).attr('cx'); // To get appropriate coordinates for tooltip
-        let cy = d3.select(this).attr('cy'); // To get appropriate coordinates for tooltip
-        tooltipGraph.html(function(){
-            return `${d.pop} population <br> pour ${d.size}m`;
-        })
-        .style('left', `${cx}px`)
-        .style('top', `${cy}px`);
+      .on('mouseover', function(d){
+        let dot = d3.select(this)
+        let cx = dot.attr('cx') // To get appropriate coordinates for tooltip
+        let cy = dot.attr('cy') // To get appropriate coordinates for tooltip
+        tooltipGraph.html(`année: ${d.year}<br/>pop: ${d.pop}`)
+        .style('left', `${cx-10}px`)
+        .style('top', `${cy-25}px`);
         tooltipGraph.transition()
         .duration(100)
         .style('opacity', 0.8);
-    })
-    // Remove tooltip on mouseout
-    .on('mouseout', function(d){
-        tooltipGraph.transition()
-        .duration(200)
-        .style('opacity', 0);
-    });
+      })
+      // Remove tooltip on mouseout
+      .on('mouseout', function(d){
+          tooltipGraph.transition()
+          .duration(200)
+          .style('opacity', 0);
+      });
 
-    // Replace part of the labels for french format
+    /*/ Replace part of the labels for french format
     $('text').each(function(){
         let legendText = $(this).text().replace(',',"'");
         $(this).text(legendText);
-    });
+    });*/
 }
 
 /** Returns a linear interpolator from the given dataPoints
@@ -494,8 +669,10 @@ function interpolator(dataPoints){
   dataPoints.sort((a,b)=>a[0]-b[0])
   //cl("dataPoints",dataPoints)
   return function interpolate(x){
+    if(dataPoints[0] && x==dataPoints[0][0]){
+      return dataPoints[0][1]
+    }
     let bi = dataPoints.findIndex(b=>b[0]>=x)
-    //cl("bi: ",bi)
     if(bi>0 && bi<=dataPoints.length){
       let a = dataPoints[bi-1]
       let b = dataPoints[bi]
@@ -505,7 +682,7 @@ function interpolator(dataPoints){
     return null
   }
 }
-/** Returns an explonential interpolator from the given dataPoints
+/** Returns an exponential interpolator from the given dataPoints
  * Useful to interpolate with growth rates
  * @param {*} dataPoints an array of length 2 arrays, each sub-array is a coordinate with sub-array[0]=x, sub-array[1]=y
  * @returns interpolate(x) a function taking a value x and returning the exponential interpolation of y at x, or null if x is outside the x range of dataPoints
@@ -513,6 +690,10 @@ function interpolator(dataPoints){
 function exponentialInterpolator(dataPoints){
   let linearInterpolator = interpolator(dataPoints.map(dp=>[dp[0],Math.log(dp[1])]))
   return function(year){
-    return Math.exp(linearInterpolator(year))
+    let logResult = linearInterpolator(year)
+    if(logResult===null){
+      return null
+    }
+    return Math.exp(logResult)
   }
 }

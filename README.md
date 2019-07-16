@@ -18,8 +18,7 @@ The names speak for themselves:
 
 # Status of the project:
 
-As of 31.03:
-- scraping is done for all currently existing communes (2242 units), old communes could be done as well
-- cleaning is done for all currently existing communes except canton Thurgau (+-100 communes), with its weird communal units
-- extrapolation is at the exploratory stage for canton Vaud
-- for the maps, at the time being, I have found a dataset giving us one geo-localised point per commune.
+As of 16.06:
+- scraping & cleaning is done for all communes existing in 2017 except canton Thurgau (2162 units), todo: no longer existing communes should also be scraped&cleaned
+- extrapolation is done in a simplistic bruteforce way: done with the average growth rate of all communes having data in given timespan.
+- Map is functional ;-) (With some mistakes, locations and population data having been joined with a fuzzy merge on communes' names)

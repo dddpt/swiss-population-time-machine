@@ -1,0 +1,198 @@
+<!-- SPTM - Didier Dupertuis & Nicolas Vallotton - Avril 2019 -->
+<!DOCTYPE html>
+<html lang="fr">
+<meta charset="UTF-8">
+<head>
+    <!-- LIBRARIES -->
+    <title>Évolution de la population des communes suisses</title>
+    <meta charset="utf-8">
+    <script src="3_maps/lib/jquery-3.2.1.js" charset="utf-8"></script>
+    <script src="3_maps/lib/bootstrap-3.3.7-dist/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="3_maps/lib/bootstrap-3.3.7-dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="3_maps/lib/leaflet/leaflet.css">
+    <script src="3_maps/lib/leaflet/leaflet-src.js"></script>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
+    <script src="3_maps/lib/d3/d3.v5.min.js" charset="utf-8"></script>
+    <script src="3_maps/lib/L.D3SvgOverlay.d3v5.js"></script>
+    <!-- <script src="lib/leaflet-heat.js"></script> -->
+    <link rel="stylesheet" href="3_maps/style.css">
+    <!-- LOADING SCRIPT -->
+    <script src="3_maps/index.js" charset="utf-8"></script>
+
+</head>
+
+<body>
+    <!-- HEADER - NAVBAR & LINKS -->
+    <header>
+        <nav class="navbar navbar-inverse navbar-fixed-top"> <!--inverse for styling - fixed top so header is fixed on top whatever scrolling-->
+            <div class="container">
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="./index.html">SPTM - Swiss Population Time Machine</a>
+                </div>
+                <div id="navbar" class="collapse navbar-collapse">
+                    <ul class="nav navbar-nav">
+                        <li><a target="_blank" href="https://github.com/dddpt/swiss-population-time-machine">Github project</a></li>
+                        <li><a target="_blank" href="mailto:didier.dupertuis@protonmail.com">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+      <div class="col-lg-12 col-md-12 col-sm-12 center">
+        <h1>Population des communes Suisses à travers le temps</h1>
+      </div>
+    </div>
+
+    <div id="map-graph" class="container-fluid">
+      <!-- MAIN BODY - MAP SIDE -->
+      <div class="col-lg-8 col-md-8 col-sm-8">
+          <div id="map"></div>
+      </div>
+      <!-- MAIN BODY - SLIDER & GRAPH SIDE -->
+      <div class="col-lg-4 col-md-4 col-sm-4">
+          <!-- TABLE FOR SLIDER AND ICONS -->
+          <table>
+
+              <tr td width="100%">
+                  <div width="100%">
+                      <h4 >Population en <span id="slider1_val"></span></h4>
+                  </div>
+              </tr>
+
+              <tr>
+                <span id="slideLabel">Choissez une année:</br></br></span>
+                <input id="slider1" class="slidBuffer" type="range" min=1200 max=2000 step=1 value=1>
+                <div id="slider1_scale" width="100%" style="text-align:center;">1200 à 2000</div>
+              
+              </tr>
+              <tr width="100%">
+                <div><svg style='position:relative;top:5px;' width="20px" height="20px"><circle cx="10" cy="10" r="10" fill="blue" opacity="0.6"></circle></svg> Données originales de population (<span id="nb-communes-data"></span> communes)</div>
+                <div style="margin-bottom: 10px;"><svg style='position:relative;top:5px;' width="20px" height="20px"><circle cx="10" cy="10" r="10" fill="darkgreen" opacity="0.6"></circle></svg> Population extrapolée</div>
+              </tr>
+          </table>
+      </div>
+      <!-- GRAPH SECTION -->
+      <div id="graphPart" class="col-lg-4 col-md-4 col-sm-4">
+          <div width="100%">
+              <h4>Évolution:</h4>
+          </div>
+          <div id="graphLegend">
+          </div>
+          <!-- THE GRAPH GOES THERE -->
+          <div id="graph">
+              <span id="tuto"></br></br>Cliquez sur une commune pour générer son graphique</span>
+          </div>
+          <div id="graphLegend2"></div>
+      </div>
+    </div>
+
+
+    <div class="container">
+      <div class="col-lg-12 col-md-12 col-sm-12">
+        <h3>Bienvenue sur la machine à remonter le temps de la population Suisse</h3>
+        <p>
+          Le but de ce projet est de collecter les données de population de communes disponibles sur le
+          Dictionnaire Historique de la Suisse (<a href="https://beta.hls-dhs-dss.ch" target="_blank" rel="nofollow">DHS</a>, une ressource fascinante pour les amateurs d'histoire)
+          et de les utiliser pour extrapoler les populations de toutes les communes Suisses à travers le temps.
+          Finalement, il s'agit de visualiser le tout et de le partager. À terme, pourquoi ne pas ajouter les routes de
+          <a href="https://map.geo.admin.ch/?topic=ivs&amp;lang=fr&amp;bgLayer=ch.swisstopo.pixelkarte-farbe&amp;layers=ch.astra.ivs-nat,ch.astra.ivs-nat-verlaeufe,ch.swisstopo.hiks-dufour,ch.swisstopo.hiks-siegfried&amp;E=2524453.86&amp;N=1157441.67&amp;zoom=4.446120007631386&amp;catalogNodes=340,350&amp;layers_visibility=true,false,false,false" target="_blank" rel="nofollow">l'IVS</a>?
+
+        </p>
+        <p>
+          Toutes les communes Suisses ont des données remontant à 1850, le début des statistiques officiels.
+          Plus de la moitié ont des données remontant à 1798 ou 1764.
+          Les cantons de Vaud et de Zürich ont une bonne couverture jusqu'au 15ième siècle, le Tessin jusqu'au 16ième.
+          Les autres sont plus lacunaires.
+        </p>
+        <p>
+          La commune ayant les données les plus anciennes n'est autre que
+          <a href="https://beta.hls-dhs-dss.ch/Articles/002445/?language=fr" target="_blank" rel="nofollow">Lussy-sur-Morges</a>,
+          avec 15 foyers (74 habitants) en 1177.
+        </p>
+        <p>
+          Est-ce que ces disparités de données sont dûes à une meilleure collection des données à l'époque médiévale?
+          Ou les données n'ont simplement pas encore été récoltées par de patients historiens?
+          Le seigneur de Lussy-sur-Morges était en tout cas bien diligent.
+        </p>
+        <p>
+          Cette page présente un projet en cours d'élaboration! Rien n'est fini.
+          Nous prenons avec plaisir tout feedback sur comment l'améliorer. Nous ne sommes que des novices dans le domaine.
+        </p>
+
+        <h3>Statut du projet</h3>
+        <p>
+          Il y a 4 étapes principales: 1) récolte des données, 2) nettoyage, 3) extrapolation et 4) affichage.
+        </p>
+        <p>Etat au 22 Juin 2019:</p>
+        <ol>
+          <li>La récolte des données est faite pour toute les communes existantes en 2017.</li>
+          <li>Le nettoyage est fait pour toutes les communes récoltées à l'exception du canton de Thurgau (cela inclut aussi la transformation de données de population de nombre de foyers à nombre d'habitants).</li>
+          <li>L'extrapolation est faite d'une manière simpliste pour toutes les communes ayant des données en 1850 dans le DHS.</li>
+          <li>La carte est fonctionnelle, avec quelques erreurs de positionnement de communes.</li>
+        </ol>
+        <p>
+          Il reste encore du travail: gérer les fusions de communes et les communes disparues, corriger les points géographiques correspondant à chaque commune, utiliser/développer une méthodologie valide pour extrapoler les données manquantes, assurer la qualité et les sources de donneés du DHS.
+        </p>
+
+        <h3>Aspects techniques</h3>
+        <p>
+          Voici la distribution des observations disponibles à travers le temps:
+          <img src="2_pop_extrapolation/obs_distrib.png">
+        </p>
+          Plus utile, la distribution cumulative de la première observation disponible pour chaque commune (lecture: 434 communes ont leur première observation avant 1600):
+          <img src="2_pop_extrapolation/first_obs.png">
+        </p>
+        <p>
+          Finalement, le taux de croissance utilisé pour les extrapolation à partir des données de l'année 1850:
+          <img src="2_pop_extrapolation/avg_ygr.png"><br/>
+          Ce taux de croissance est obtenu d'une manière simpliste: pour une année <i>t</i>, c'est le taux de croissance moyen des communes (pondérés par leurs populations en <i>t</i>) ayant des données autour de <i>t</i>.
+          Sont aussi exclues les communes de plus de 10'000 habitants en 1850 (soit les 10-15 plus grandes villes de Suisse).
+          Cela donne une estimation grossière de la population, avec plusieurs biais (lissage, sensibilité, overfitting, etc...).
+        </p>
+        <p>
+          Par exemple, la peste noire de 1347 y apparaît comme un changement total de population d'environ -2% (-0.2% sur 10 ans), contre -30% voire -50% en réalité.
+        </p>
+
+        <h3>Que faire pour nous aider</h3>
+        <p>
+          La commune du Chenit se trouve-t'elle juste au nord de la ville de Montreux? Certainement pas! Si vous remarquez une coquille: indiquez-la nous!
+        </p>
+        <p>
+          Vous connaissez une méthode révolutionnaire d'afficher ces données? On prend.
+        </p>
+        <p>
+          Vous êtes un habitués des statistiques historiques?
+          Nous prenons volontiers toutes les informations pertinentes, que ce soit des sources de données supplémentaires ou
+          l'information que tout ce travail aurait déjà été fait par d'autres.
+          Nous nous jetterons sur toute littérature scientifique sur le sujet tels des hyènes sur une carcasse. Nous en manquons cruellement.
+        </p>
+                <!--p>The aim of this project is to estimate population of swiss communes (=municipalities) for the last 8 centuries, put it on a beautiful map and share it with the world!
+          The data comes from the <a href="https://beta.hls-dhs-dss.ch" target="_blank" rel="nofollow">Swiss Historical Dictionary</a>, a wonderful online encyclopedia on Swiss history.</p>
+          <p>All communes have population data back to 1850 (start of the official Swiss Statistics); some have data going back to around 1400, and a rare few even have data going as far back as 1170!</p>
+          <p>Once this is done, it could always be possible to add <a href="https://map.geo.admin.ch/?topic=ivs&amp;lang=fr&amp;bgLayer=ch.swisstopo.pixelkarte-farbe&amp;layers=ch.astra.ivs-nat,ch.astra.ivs-nat-verlaeufe,ch.swisstopo.hiks-dufour,ch.swisstopo.hiks-siegfried&amp;E=2524453.86&amp;N=1157441.67&amp;zoom=4.446120007631386&amp;catalogNodes=340,350&amp;layers_visibility=true,false,false,false" target="_blank" rel="nofollow">roads</a>, historically used communes' names, etc. A boy can dream.</p>
+          
+          <h1></a>Status of the project:</h1>
+          <p>As of 16.06:</p>
+          <ul>
+          <li>scraping & cleaning is done for all communes existing in 2017 except canton Thurgau (2162 units), todo: no longer existing communes should be scraped</li>
+          <li>cleaning is done for all scraped communes, </li>
+          <li>for all communes having data in 1850 or before, extrapolation is done in a simplistic bruteforce way: done with the average growth rate of all communes having data in given timespan. Communes without data in 1850, no extrapolation is done.</li>
+          <li>Map is functional ;-) (With some mistakes, locations and population data having been joined with a fuzzy merge on communes' names)</li>
+          </ul>
+
+          <p>
+              <img src="2_pop_extrapolation/obs_distrib.png">
+              <img src="2_pop_extrapolation/first_obs.png">
+              <img src="2_pop_extrapolation/avg_ygr.png">
+          </p>-->
+          
+      </div>
+    </div>
+  
+
+
+    <!-- LAUNCHING MAIN SCRIPT -->
+    <script> APP.main(); </script>
+</body>
+</html>

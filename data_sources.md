@@ -2,6 +2,9 @@
 # Draw maps
 ====================================
 
+BEST POPULATION DENSITY DATA-VIZ
+https://pudding.cool/2018/10/city_3d/https://blog.mapbox.com/3d-mapping-global-population-density-how-i-built-it-141785c91107
+
 Map original repo: roubaka/TPVD
 https://github.com/roubaka/TPVD
 
@@ -87,7 +90,8 @@ https://www.ivs.admin.ch/fr/
 ## Inventaire fédéral des paysages, sites et monuments naturels
 ## Inventaire fédéral des sites construits à protéger en Suisse
 
-# Population data, other studies
+
+# Population data, other studies, literature
 ====================================
 
 STATISTIQUES HISTORIQUES
@@ -127,10 +131,32 @@ Spatial dynamics of economic growth in Switzerland from 1860 to 2000
 https://archive-ouverte.unige.ch/unige:41760
 Stohr, Christian
 
+Quantitative analysis of population-scale family trees with millions of relatives
+https://science.sciencemag.org/content/360/6385/171/
+-> 13 million individuals family tree! genealogy yay!
+
+Étude de la démographie française du XIXe siècle à partir de données collaboratives de généalogie
+https://hal.archives-ouvertes.fr/hal-01724269/
+Internal Migrations in France in the Nineteenth Century
+https://arxiv.org/abs/1807.08991
+
+Combining Family History and Machine Learning to Link Historical Records
+https://cheps.sdsu.edu/docs/seminar/CHEPS_Price_Working_Paper.pdf
+
+Families in Comparison: An individual-level comparison of life course and family reconstructions between population and vital event registers
+https://osf.io/preprints/socarxiv/h2w8t/
+
+Blood is thicker than bloodshed: A genealogical approach to reconstruct populations after armed conflicts
+https://www.demographic-research.org/Volumes/Vol40/23/
+
+
 ## Other relevant sources
 
 http://www.chronologie-jurassienne.ch/fr/Accueil.html#
 
+
+Histhub.ch
+https://histhub.ch/news/
 
 GEOVISTORY:
 https://kleiolab.ch/
@@ -138,6 +164,7 @@ https://tube.switch.ch/cast/videos/5f05fea2-25b2-4edb-8b58-ae4c02cf5ca1
 https://www.youtube.com/watch?v=f9m72IACk8o
 http://histhub.net/
 https://www.businessparc.ch/de/blog/business-parc-startup-story-kleiolab-juni-2017/
+
 
 
 
