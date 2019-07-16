@@ -367,7 +367,7 @@ APP.updateMap = function(){
       })
       .attr('fill', function(d){
         d.hab_year[0]
-        if(d.hab_year[0] && d.hab_year[0].year<APP.currentYear){
+        if(d.hab_year[0] && d.hab_year[0].year<=APP.currentYear){
           return "blue"
         } else{
           return "darkgreen"
@@ -394,6 +394,7 @@ APP.sliderevent = function(){
 
 APP.updateYear = function(){
   $("#slider1_val").html(APP.currentYear)
+  $("#nb-communes-data").html(APP.communes.filter(c => c.hab_year[0]? c.hab_year[0].year<=APP.currentYear:false).length)
   APP.updateMap()
 }
 
