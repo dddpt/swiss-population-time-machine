@@ -578,7 +578,7 @@
         let areYouSure = confirm("Are you sure you want to download the checkpoint? Localstorage data will be then removed.")
         if(areYouSure){
           download_file(
-            "communes_V2_checkpoint_"+(+new Date())+".json",
+            "anciennes_communes_V2_checkpoint_"+(+new Date())+".json",
             JSON.stringify({"reviewedCommunes":reviewedCommunes,"communesToReview":communesToReview,"currentCommuneToReviewIndex":currentCommuneToReviewIndex})
           )
           localStorage.setItem("checkpoint","")
