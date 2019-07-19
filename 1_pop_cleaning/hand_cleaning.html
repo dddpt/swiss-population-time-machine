@@ -631,6 +631,16 @@
         })
       }
 
+      /* ---------------- re-establish old_hab_year as hab_year ---------------- */
+
+      let last_hab_year;
+      function reestablish_hab_year(){
+        last_hab_year = activeCommune.hab_year
+        activeCommune.hab_year = activeCommune.old_hab_year
+        updateScreen(activeCommune)
+        return last_hab_year
+      }
+
 
       /* ---------------- Code to have a file-dropzone, so that a user can simply drop a gedcom file, unused yet ---------------- */
 
