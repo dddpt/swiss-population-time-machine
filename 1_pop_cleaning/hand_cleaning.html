@@ -51,9 +51,9 @@
 
       let file = "./communes_VD.json";
       let reviewedFile = "./communes_VD_clean.json";
-      main(file,reviewedFile)
+      main()
 
-      async function main(communesFile,reviewedCommunesFile){
+      async function main(){
 
         getLastCheckpoint()
 
@@ -578,7 +578,7 @@
         let areYouSure = confirm("Are you sure you want to download the checkpoint? Localstorage data will be then removed.")
         if(areYouSure){
           download_file(
-            "communes_V2_checkpoint_"+(+new Date())+".json",
+            "anciennes_communes_V2_checkpoint_"+(+new Date())+".json",
             JSON.stringify({"reviewedCommunes":reviewedCommunes,"communesToReview":communesToReview,"currentCommuneToReviewIndex":currentCommuneToReviewIndex})
           )
           localStorage.setItem("checkpoint","")
@@ -629,6 +629,16 @@
           rereviewCommune(rcbui)
           return rcbui
         })
+      }
+
+      /* ---------------- re-establish old_hab_year as hab_year ---------------- */
+
+      let last_hab_year;
+      function reestablish_hab_year(){
+        last_hab_year = activeCommune.hab_year
+        activeCommune.hab_year = activeCommune.old_hab_year
+        updateScreen(activeCommune)
+        return last_hab_year
       }
 
 

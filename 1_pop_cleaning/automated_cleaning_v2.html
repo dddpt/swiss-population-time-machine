@@ -42,7 +42,7 @@
        * ...and output them in a file ready for proper validation of the non-VD communes.
        */
 
-      let fileToLoad = "./communes_checkpoint_1553017716722.json"
+      let fileToLoad = "./anciennes_communes_initial_checkpoint.json"
 
       let communesToReview =[]
       let currentCommuneToReviewIndex
@@ -82,6 +82,10 @@
         ]
       let regexAcceptedUnits = /Einw|Feuer|Haus|Häus|Höfe|Hof|Wohn/
       let rcBadUnits
+      let communesWithoutCantonShortname = {
+        "Bevaix (Gemeinde)": "NE",
+        "Leimbach (ZH)": "ZH"
+      }
 
       // original regex: r"\W([1-2]\d{3}) (\d+(?:'\d+)?)(\W.+?)??(?:;|\.)"
       let regexMitCaUndKomma = /\W([1-2]\d{3})(?: ca\.?)? (\d+(?:'\d+)?)(\W.+?)??(?:;|\.|,)/g
@@ -190,9 +194,20 @@
 
 
       let cantonRegex = /([A-Z]{2})/g
-      function extractCanton(commune){
+      function extractCanton(commune,i){
         if(!commune.canton){
-          commune.canton = commune.text.match(cantonRegex)[0].trim()
+          if(!commune.text.match(cantonRegex)){
+            cl("\n\nnegative cantonregex, c.name: ",commune.name, ", index: ", i)
+            cl("commune.text.match(cantonRegex) = ",commune.text.match(cantonRegex))
+            cl("text: ",commune.text)
+          }
+          // Bevaix specialty
+          if(communesWithoutCantonShortname[commune.name]){
+            commune.canton = communesWithoutCantonShortname[commune.name]
+          }
+          else{
+            commune.canton = commune.text.match(cantonRegex)[0].trim()
+          }
         }
       }
       function isTG(commune){return Boolean(commune.canton.match("TG"))}
