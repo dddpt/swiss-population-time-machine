@@ -33,8 +33,31 @@ let APP = {
       return "black"
     },
     transitionsDuration: 1000
-  }
+  },
+  i18nDir: "3_maps/assets/translations/"
 };
+
+
+async function languageLoader(lng){
+  let translation = await fetch(APP.i18nDir+lng+".json")
+  //console.log( "translation.status: ", translation.status, ", translation: ", translation)
+  if(translation.status==200){
+    translation = await translation.json()
+    return translation
+  }else{
+    throw {
+      message: 'loading of translation "'+lng+'" failed',
+      lng: lng,
+      response: translation
+    }
+  }
+}
+
+APP.i18n = new Internationalisation(["fr","de","it","en"],languageLoader,"fr")
+APP.i18n.useLocalStorage = false
+APP.i18n.observe(document)
+
+APP.i18n.dynamic["label-original-pop-data"] = (t,d) => t.replace("{#nbcommunes}",d)
 
 /*****
 Declaring global variables
@@ -394,7 +417,8 @@ APP.sliderevent = function(){
 
 APP.updateYear = function(){
   $("#slider1_val").html(APP.currentYear)
-  $("#nb-communes-data").html(APP.communes.filter(c => c.hab_year[0]? c.hab_year[0].year<=APP.currentYear:false).length)
+  APP.i18n.data("label-original-pop-data",APP.communes.filter(c => c.hab_year[0]? c.hab_year[0].year<=APP.currentYear:false).length)
+  //$("#nb-communes-data").html(APP.communes.filter(c => c.hab_year[0]? c.hab_year[0].year<=APP.currentYear:false).length)
   APP.updateMap()
 }
 

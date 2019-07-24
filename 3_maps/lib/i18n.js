@@ -30,10 +30,11 @@ class Internationalisation{
    * @param {string} keyAttr the name of the html5 attribute to watch for keys, by default "data-i18n"
    * @param {string} dataAttr the name of the html5 attribute to watch for data, by default "data-i18n-data".
    */
-  constructor(supportedLanguages, languageLoader, lng=false, dynamic = {}, keyAttr = "data-i18n", dataAttr = "data-i18n-data"){
+  constructor(supportedLanguages, languageLoader, lng=false, dynamic = {}, keyAttr = "data-i18n", dataAttr = "data-i18n-data", useLocalStorage=true){
     this.dynamic = dynamic
     this.keyAttr = keyAttr
     this.dataAttr = dataAttr
+    this.useLocalStorage = useLocalStorage
     this.supportedLanguages = supportedLanguages
     this.defaultLanguage = this.supportedLanguages[0]
     this.languageChangeCallbacks = []
@@ -152,14 +153,16 @@ class Internationalisation{
    * @param {string} lng language string identifier
    */
   async loadLanguage(lng){
-    let translation = this.loadLngFromLocalStorage(lng)
+    let translation = this.useLocalStorage? this.loadLngFromLocalStorage(lng) : false
     if(translation){
       this.translations[lng] = translation
     }
     else{
       this.translationsPromises[lng] = this.languageLoader(lng)
       this.translations[lng] = await this.translationsPromises[lng]
-      this.saveLngToLocalStorage(lng,this.translations[lng])
+      if(this.useLocalStorage){
+        this.saveLngToLocalStorage(lng)
+      }
     }
   }
 
@@ -192,8 +195,8 @@ class Internationalisation{
     return null
   }
 
-  saveLngToLocalStorage(lng, transDict, transKey = "translation."+lng,saveDateKey="translation_save_date."+lng){
-    localStorage.setItem(transKey,JSON.stringify(transDict))
+  saveLngToLocalStorage(lng, transKey = "translation."+lng,saveDateKey="translation_save_date."+lng){
+    localStorage.setItem(transKey,JSON.stringify(this.translations[lng]))
     localStorage.setItem(saveDateKey,+new Date())
   }
   
