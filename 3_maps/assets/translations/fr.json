@@ -1,0 +1,51 @@
+{
+  "_COMMENT1": ",",
+  "page-title": "Éeeeevolution de la population des communes suisses",
+  "navbar-home": "SPTM - Swiss Population Time Machine",
+  "navbar-github-link": "Github project",
+  "navbar-contact": "Contaact",
+  "body-title": "Population des communes Suisses à travers le temps",
+  "current-year-title": "Population en",
+  "choose-year": "Choissez une année:",
+  "years-range": "1200 à 2000",
+  "label-original-pop-data": "Données originales de population ({#nbcommunes} communes)",
+  "label-extrapolated-pop-data": "Population extrapolée",
+  "graph-title": "Évolution:",
+  "graph-click-hint": "Cliquez sur une commune pour générer son graphique",
+
+  "_COMMENT2": "------------------------ welcome ------------------------",  
+  "welcome-title": "Bienvenue sur la machine à remonter le temps de la population Suisse",
+  "welcome-p1": "Le but de ce projet est de collecter les données de population de communes disponibles sur le Dictionnaire Historique de la Suisse (<a href='https://beta.hls-dhs-dss.ch' target='_blank' rel='nofollow'>DHS</a>, une ressource fascinante pour les amateurs d'histoire) et de les utiliser pour extrapoler les populations de toutes les communes Suisses à travers le temps. Finalement, il s'agit de visualiser le tout et de le partager. À terme, pourquoi ne pas ajouter les routes de <a href='https://map.geo.admin.ch/?topic=ivs&amp;lang=fr&amp;bgLayer=ch.swisstopo.pixelkarte-farbe&amp;layers=ch.astra.ivs-nat,ch.astra.ivs-nat-verlaeufe,ch.swisstopo.hiks-dufour,ch.swisstopo.hiks-siegfried&amp;E=2524453.86&amp;N=1157441.67&amp;zoom=4.446120007631386&amp;catalogNodes=340,350&amp;layers_visibility=true,false,false,false' target='_blank' rel='nofollow'>l'IVS</a>?",
+  "welcome-p2": "Toutes les communes Suisses ont des données remontant à 1850, le début des statistiques officiels. Plus de la moitié ont des données remontant à 1798 ou 1764. Les cantons de Vaud et de Zürich ont une bonne couverture jusqu'au 15ième siècle, le Tessin jusqu'au 16ième. Les autres sont plus lacunaires.",
+  "welcome-p3": "La commune ayant les données les plus anciennes n'est autre que <a href='https://beta.hls-dhs-dss.ch/Articles/002445/?language=fr' target='_blank' rel='nofollow'>Lussy-sur-Morges</a>, avec 15 foyers (74 habitants) en 1177.",
+  "welcome-p4": "Est-ce que ces disparités de données sont dûes à une meilleure collection des données à l'époque médiévale? Ou les données n'ont simplement pas encore été récoltées par de patients historiens? Le seigneur de Lussy-sur-Morges était en tout cas bien diligent.",
+  "welcome-p5": "Cette page PPPPprésente un projet en cours d'élaboration! Rien n'est fini. Nous prenons avec plaisir tout feedback sur comment l'améliorer. Nous ne sommes que des novices dans le domaine.",
+
+  "_COMMENT2": "------------------------ status ------------------------",
+  "status-title": "Statut du projet",
+  "status-p1": "Il y a 4 étapes principales: 1) récolte des données, 2) nettoyage, 3) extrapolation et 4) affichage.",
+  "status-p2": "Etat au 24 Juillet 2019:",
+  "status-li1": "La récolte des données est faite pour toute les communes et anciennes communes disponibles sur le DHS.",
+  "status-li2": "Le nettoyage est fait pour toutes les communes récoltées à l'exception du canton de Thurgau.",
+  "status-li3": "L'extrapolation est faite d'une manière simpliste pour toutes les communes ayant des données en 1850 dans le DHS.",
+  "status-li4": "La carte est fonctionnelle, les fusions de communes ne sont pas gérées (les communes disparues ayant fusionnées sont aussi affichées), et il ya quelques erreurs de positionnement de communes.",
+  "status-p3": "Il reste encore du travail: gérer les fusions de communes correctement, corriger les points géographiques correspondant à chaque commune, utiliser/développer une méthodologie valide pour extrapoler les données manquantes, assurer la qualité et les sources de donneés du DHS.",
+  "technical-title": "Aspects techniques",
+  "technical-p1": "Voici la distribution des observations disponibles à travers le temps:",
+  "technical-p2": "Plus utile, la distribution cumulative de la première observation disponible pour chaque commune (lecture: 434 communes ont leur première observation avant 1600):",
+  "technical-p3": "Finalement, le taux de croissance utilisé pour les extrapolation à partir des données de l'année 1850:",
+  "technical-p4": "Ce taux de croissance est obtenu d'une manière simpliste: pour une année <i>t</i>, c'est le taux de croissance moyen des communes (pondérés par leurs populations en <i>t</i>) ayant des données autour de <i>t</i>. Sont aussi exclues les communes de plus de 10'000 habitants en 1850 (soit les 10-15 plus grandes villes de Suisse). Cela donne une estimation grossière de la population, avec plusieurs biais (lissage, sensibilité, overfitting, etc...).",
+  "technical-p5": "Par exemple, la peste noire de 1347 y apparaît comme un changement total de population d'environ -2% (-0.2% sur 10 ans), contre -30% voire -50% en réalité.",
+  "help-title": "Que faire pour nous aider",
+  "help-p1": "La commune du Chenit se trouve-t'elle juste au nord de la ville de Montreux? Certainement pas! Si vous remarquez une coquille: indiquez-la nous!",
+  "help-p2": "Vous connaissez une méthode révolutionnaire d'afficher ces données? On prend.",
+  "help-p3": "Vous êtes un habitués des statistiques historiques? Nous prenons volontiers toutes les informations pertinentes, que ce soit des sources de données supplémentaires ou l'information que tout ce travail aurait déjà été fait par d'autres. Nous nous jetterons sur toute littérature scientifique sur le sujet tels des hyènes sur une carcasse. Nous en manquons cruellement.",
+
+
+
+
+  "": "",
+  "": "",
+  "": "",
+  "": ""
+}
