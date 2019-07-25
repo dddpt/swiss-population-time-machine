@@ -38,29 +38,6 @@ let APP = {
 };
 
 
-async function languageLoader(lng){
-  let translation = await fetch(APP.i18nDir+lng+".json")
-  //console.log( "translation.status: ", translation.status, ", translation: ", translation)
-  if(translation.status==200){
-    translation = await translation.json()
-    return translation
-  }else{
-    throw {
-      message: 'loading of translation "'+lng+'" failed',
-      lng: lng,
-      response: translation
-    }
-  }
-}
-
-APP.i18n = new Internationalisation(["fr","de","it","en"],languageLoader,"en")
-APP.i18n.useLocalStorage = false
-APP.i18n.dynamic["label-original-pop-data"] = (t,d) => t.replace("{#nbcommunes}",d)
-function onChangeLanguage(oldLng, newLng){
-  $("#lang-dropdown .lang-current").text(" "+newLng.toUpperCase()+" ")
-}
-APP.i18n.languageChangeCallbacks.push(onChangeLanguage)
-APP.i18n.observe(document)
 
 
 /*****
