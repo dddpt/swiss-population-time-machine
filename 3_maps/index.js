@@ -53,11 +53,15 @@ async function languageLoader(lng){
   }
 }
 
-APP.i18n = new Internationalisation(["fr","de","it","en"],languageLoader,"fr")
+APP.i18n = new Internationalisation(["fr","de","it","en"],languageLoader,"en")
 APP.i18n.useLocalStorage = false
+APP.i18n.dynamic["label-original-pop-data"] = (t,d) => t.replace("{#nbcommunes}",d)
+function onChangeLanguage(oldLng, newLng){
+  $("#lang-dropdown .lang-current").text(" "+newLng.toUpperCase()+" ")
+}
+APP.i18n.languageChangeCallbacks.push(onChangeLanguage)
 APP.i18n.observe(document)
 
-APP.i18n.dynamic["label-original-pop-data"] = (t,d) => t.replace("{#nbcommunes}",d)
 
 /*****
 Declaring global variables

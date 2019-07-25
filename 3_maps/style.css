@@ -102,3 +102,13 @@ td {
     box-shadow: 0 0 15px rgba(0,0,0,0.2);
     border-radius: 5px;
 }
+
+#lang-menu{
+  min-width:50px;
+  width:50px;
+  text-align:center;
+}
+#lang-menu .dropdown-item{
+  color: #404040;
+  font-weight: 500;
+}

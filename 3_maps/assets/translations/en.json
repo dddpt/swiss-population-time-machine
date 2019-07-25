@@ -1,0 +1,42 @@
+{
+  "page-title": "Population trends in Swiss municipalities",
+  "navbar-home": "SPTM - Swiss Population Time Machine",
+  "navbar-github-link": "Github project",
+  "navbar-contact": "Contact",
+  "body-title": "Population of Swiss municipalities over time",
+  "current-year-title": "Population in",
+  "choose-year": "Choose a year:",
+  "years-range": "1200 to 2000",
+  "label-original-pop-data": "Original population data ({#nbcommunes} municipalities)",
+  "label-extrapolated-pop-data": "Extrapolated population",
+  "graph-title": "Evolution:",
+  "graph-click-hint": "Click on a municipality to generate its graph",
+  
+  "welcome-title": "Welcome to the Swiss population time machine",
+  "welcome-p1": "The aim of this project is to collect the population data of municipalities available on the Historical Dictionary of Switzerland (<a href='https://beta.hls-dhs-dss.ch' target='_blank' rel='nofollow'>DHS</a>, a fascinating resource for history lovers) and to use them to extrapolate the populations of all Swiss municipalities over time. Finally, we want to visualize and share the result.  In the long run, why not add the routes from <a href='https://map.geo.admin.ch/?topic=ivs&amp=ivs&amp;lang=en&amp;bgLayer=ch.swisstopo.pixelkarte-farbe&amp;layers=ch.astra.ivs-nat,ch.astra.ivs-nat-verlaeufe,ch.swisstopo. hiks-dufour,ch.swisstopo.hiks-siegfried&amp;E=2524453.86&amp;N=1157441.67&amp;zoom=4.446120007631386&amp;catalogNodes=340,350&amp;layers_visibility=true,false,false,false' target='_blank' rel='nofollow'>IVS</a> or extend the project beyond the swiss borders? ",
+  "welcome-p2": "All Swiss municipalities have data dating back to 1850, the beginning of official statistics. More than half have data from 1798 or 1764.  The cantons of Vaud and Z\u00fcrich had good coverage until the 15th century, Ticino until the 16th.  The others are more incomplete. ",
+  "welcome-p3": "The municipality with the oldest data is none other than <a href='https://beta.hls-dhs-dss.ch/Articles/002445/?language=fr=fr' target='_blank' rel='nofollow'>Lussy-sur-Morges</a>, with 15 households (74 inhabitants) in 1177.",
+  "welcome-p4": "Are these data disparities due to better data collection in medieval times? Or have the data simply not yet been collected by patient historians?  The lord of Lussy-sur-Morges was in any case very diligent. ",
+  "welcome-p5": "This page shows a project under development! Nothing is over. We welcome any feedback on how to improve it. We are only novices in the field.",
+  
+  "status-title": "Project status",
+  "status-p1": "There are 4 main steps: 1) data collection, 2) cleaning, 3) extrapolation and 4) display.",
+  "status-p2": "As of July 24, 2019:",
+  "status-li1": "Data collection is done for all municipalities and former municipalities available on the DHS.",
+  "status-li2": "Cleaning is done for all harvested municipalities except the canton of Thurgau.",
+  "status-li3": "The extrapolation is done in a simplistic way for all municipalities with data in 1850 in the DHS.",
+  "status-li4": "The map is functional, mergers of municipalities are not managed (dissolved municipalities that have merged are also displayed), and there are some errors in positioning municipalities.",
+  "status-p3": "There is still work to be done: managing municipal mergers correctly, correcting the geographical points corresponding to each municipality, using/developing a valid methodology to extrapolate missing data, ensuring data quality and DHS data sources.",
+  
+  "technical-title": "Technical aspects",
+  "technical-p1": "Here is the distribution of available observations over time:",
+  "technical-p2": "More useful is the cumulative distribution of the first observation available for each municipality (reading: 617 municipalities have their first observation before 1600):",
+  "technical-p3": "Finally, the growth rate used for extrapolation from 1850 data:",
+  "technical-p4": "This growth rate is obtained in a simplistic way: for a year <i>t</i>, it is the average growth rate of municipalities (weighted by their populations in <i>t</i>) with data around <i>t</i>. Also excluded are municipalities with more than 10,000 inhabitants in 1850 (the 10-15 largest cities in Switzerland). This gives a rough estimate of the population, with several biases (smoothing, sensitivity, overfitting, etc...).",
+  "technical-p5": "For example, the 1347 Black Death appears as a total population change of about -2% (-0.2% over 10 years), compared to -30% or even -50% in reality.",
+  
+  "help-title": "What can you do to help us?",
+  "help-p1": "Is the municipality of Le Chenit just north of the city of Montreux? Certainly not! If you notice a typo: let us know!",
+  "help-p2": "Do you know a revolutionary way to display this data? We'll take it.",
+  "help-p3": "Are you familiar with historical statistics? We are happy to take all relevant information, whether it is additional data sources or information that all this work has already been done by others. We will throw ourselves at any scientific literature on the subject like hyenas on a carcass. We are sorely lacking in them."
+}

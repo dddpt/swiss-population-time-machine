@@ -34,6 +34,12 @@
                     <ul class="nav navbar-nav">
                         <li><a target="_blank" href="https://github.com/dddpt/swiss-population-time-machine" data-i18n="navbar-github-link"></a></li>
                         <li><a target="_blank" href="mailto:didier.dupertuis@protonmail.com" data-i18n="navbar-contact"></a></li>
+                        <li class="dropdown show">
+                            <a class="dropdown-toggle" href="#" role="button" id="lang-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                              <i class="fas fa-globe-africa"></i><span class="lang-current"> FR </span><i class="fas fa-sort-down"></i>
+                            </a>
+                            <div id="lang-menu" class="dropdown-menu" aria-labelledby="lang-dropdown"></div>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -134,6 +140,19 @@
     
     APP.main();
     
+    // add language choice buttons:
+    for(let lng of APP.i18n.supportedLanguages){
+      console.log("adding lng",lng)
+      let langMenu = d3.select("#lang-menu")
+
+      console.log("adding lng",lng, "in: ", langMenu)
+      langMenu.append("a")
+          .attr("class","dropdown-item")
+          .attr("href",'javascript:void(0);')
+          .html(lng.toUpperCase())
+          .on("click.change-language", ()=> APP.i18n.changeLanguage(lng))
+      langMenu.append("br")
+    }
     
     </script>
 </body>
