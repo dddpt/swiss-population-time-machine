@@ -6,3 +6,4 @@ venv/*
 .oldgit/*
 *~lock*
 *.txt
+3_maps/node_modules/*

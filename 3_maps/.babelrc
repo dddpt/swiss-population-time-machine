@@ -1,0 +1,15 @@
+{
+  "presets": [
+    [
+      "env",
+      {
+        "targets": {
+          "chrome": "34",
+          "firefox": "32",
+          "safari": "8",
+          "ie": "11"
+        }
+      }
+    ]
+  ]
+}
