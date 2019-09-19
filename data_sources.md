@@ -21,8 +21,38 @@ https://github.com/pelias/line-interpolate-points
 
 COOL OLD MAPS:
 https://www.oldmapsonline.org/map/unibern/001008248
-https://www.e-rara.ch/zut/content/zoom/7246433
+Carte routière suisse 1852 (low quality):
 https://www.e-rara.ch/zut/content/zoom/6484274
+suisse entière <1840, probably 1798 (high quality):
+https://www.e-rara.ch/zut/content/zoom/7246433
+Suisse romande 1798 (good quality):
+http://maps.nypl.org/warper/maps/27398
+Suisse romande 1798 (good quality):
+https://www.e-rara.ch/zut/content/zoom/7258374
+Vaud, 1822 (good quality, especially roads!):
+https://www.e-rara.ch/zut/content/zoom/6692699
+suisse romande en 1781 (high quality):
+https://www.e-rara.ch/zut/content/zoom/7203623
+Vaud, bern, bale argau 1740-1742 (ok quality):
+https://biblio.unibe.ch/web-apps/maps/zoomify.php?pic=Ryh_3211_28.jpg&col=ryh
+Mer mediterranée circa 1700:
+https://iiif.lib.harvard.edu/manifests/view/ids:21226369
+Suisse romande ~1650, (ok quality):
+https://mapy.mzk.cz/mzk03/001/062/131/2619269310/
+Canton de Berne 1577-1578, (high quality)
+https://aleph.unibas.ch/F/YY14TBK8L553MKA357IMLRMNNFCRDIXNEMJS577LP1T5T3M5AM-02183?func=full-set-set&set_number=721976&set_entry=000003&format=999
+Cantons de Berne, fribourg et vaud 1577-1578, avec frontières de baillages, (high quality):
+https://www.unibe.ch/universitaet/dienstleistungen/universitaetsbibliothek/recherche/sondersammlungen/kartensammlungen/ryhiner_weltweit/pix/index_ger.html?gallery=3211&pagetitle=3211+Bern%2C+Freiburg%2C+Waadt%2C+Wallis
+lower quality but all together:
+https://biblio.unibe.ch/web-apps/maps/zoomify.php?pic=Ryh_3211_15.jpg&col=ryh
+Vaud berne fribourg, 15XX Mercator (ok quality):
+https://mapy.mzk.cz/mzk03/001/062/125/2619269313/
+
+Atlas of greek&roman world:
+https://www.amazon.com/Barrington-Atlas-Greek-Roman-World/dp/069103169X
+
+Awesome map of the roman empire, settlements and roads in 211 AD:
+https://brilliantmaps.com/roman-empire-211/
 
 maptiler:
 https://www.maptiler.com/team/
