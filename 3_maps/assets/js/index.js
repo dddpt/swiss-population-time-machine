@@ -612,7 +612,7 @@ APP.updateGraph = function () {
   );
 
   var legendDivEnter = legendDiv.enter().append("div").attr("id", APP.graph.legendId).attr("class", "graph-commune-legend");
-  legendDivEnter.append("span").html("x ").style("cursor", "pointer").on("click", APP.removeCommuneFromGraph);
+  legendDivEnter.append("span").html("x ").attr("class", "remove-commune-from-graph").on("click", APP.removeCommuneFromGraph);
   legendDivEnter.append("span").html(function (c) {
     return c.name;
   }).style('color', function (c) {

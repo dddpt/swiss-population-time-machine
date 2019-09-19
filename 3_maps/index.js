@@ -580,7 +580,7 @@ APP.updateGraph = function() {
       .attr("class","graph-commune-legend")
     legendDivEnter.append("span")
       .html("x ")
-      .style("cursor", "pointer")
+      .attr("class","remove-commune-from-graph")
       .on("click", APP.removeCommuneFromGraph)
     legendDivEnter.append("span")
       .html(c => c.name)

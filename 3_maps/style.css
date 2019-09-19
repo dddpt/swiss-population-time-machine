@@ -39,6 +39,9 @@ div.tooltip {
     font-weight: bold;
 }
 
+.dot{
+  cursor: pointer
+}
 .dot.intrapolated{
   fill:blue;
 }
@@ -91,4 +94,9 @@ div.tooltipGraph {
   shape-rendering: crispEdges;
   stroke-width: 1px;
   opacity:0.5;
+}
+
+.remove-commune-from-graph:hover{
+  color: red;
+  cursor: pointer
 }
