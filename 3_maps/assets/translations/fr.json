@@ -9,6 +9,8 @@
   "years-range": "1200 à 2000",
   "label-original-pop-data": "Données originales de population ({#nbcommunes} communes)",
   "label-extrapolated-pop-data": "Population extrapolée",
+  "hide-communes-button": "cacher",
+  "show-communes-button": "montrer",
   "graph-title": "Évolution:",
   "graph-click-hint": "Cliquez sur une commune pour générer son graphique",
 

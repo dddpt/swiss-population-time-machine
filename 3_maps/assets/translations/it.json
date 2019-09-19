@@ -9,6 +9,8 @@
   "years-range": "1200-2000",
   "label-original-pop-data": "Dati originali sulla popolazione ({#nbcomuni} comuni)",
   "label-extrapolated-pop-data": "Estrapolazione della popolazione",
+  "hide-communes-button": "cacher",
+  "show-communes-button": "nascondere",
   "graph-title": "Evoluzione:",
   "graph-click-hint": "Clicca su un comune per generare il suo grafico",
   "welcome-title": "Benvenuti nella macchina del tempo della popolazione svizzera",

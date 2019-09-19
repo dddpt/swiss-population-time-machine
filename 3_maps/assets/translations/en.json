@@ -9,6 +9,8 @@
   "years-range": "1200 to 2000",
   "label-original-pop-data": "Original population data ({#nbcommunes} municipalities)",
   "label-extrapolated-pop-data": "Extrapolated population",
+  "hide-communes-button": "hide",
+  "show-communes-button": "show",
   "graph-title": "Evolution:",
   "graph-click-hint": "Click on a municipality to generate its graph",
   

@@ -9,6 +9,8 @@
   "years-range": "1200 bis 2000",
   "label-original-pop-data": "Urspr\u00fcngliche Bev\u00f6lkerungsdaten ({#nbcommunes} Gemeinden)",
   "label-extrapolated-pop-data": "Hochgerechnete Population",
+  "hide-communes-button": "verstecken",
+  "show-communes-button": "zeigen",
   "graph-title": "Evolution:",
   "graph-click-hint": "Klicken Sie auf eine Gemeinde, um ihre Grafik zu erstellen.",
   "welcome-title": "Willkommen bei der Schweizer Bev\u00f6lkerung Zeitmaschine",

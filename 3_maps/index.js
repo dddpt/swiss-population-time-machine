@@ -10,6 +10,8 @@ let APP = {
   communesFile: "3_maps/communes_geo.csv",
   ygrs:[],
   ygrFile: "3_maps/avg_yearly_growth_rates.csv",
+  showCommunesWithData: true,
+  showCommunesWithoutData: true,
   graph:{
     // Array of 0 to initialize correct number of dots for scatterplot
     data:[],
@@ -246,6 +248,10 @@ function pop_calculator(commune){
   }
 }
 
+APP.hasCommuneData = function(commune, year){
+  return commune.hab_year[0] && commune.hab_year[0].year<=year
+}
+
 /*****
 Creating points for communes and adding them to the map
 *****/
@@ -264,9 +270,6 @@ APP.makeCommunes = async function(){
         .attr('cx', function(d){return proj.latLngToLayerPoint(d.latLng).x;}) // projecting points
         .attr('cy', function(d){return proj.latLngToLayerPoint(d.latLng).y;}) // projecting points
         .attr('r', 0)
-        .attr('fill', function(d){
-            return "blue"
-        })
         .style('position', 'relative')
         // .style('stroke','black')
         .attr('opacity', .6)
@@ -361,7 +364,7 @@ APP.makeCommunes = async function(){
 }
 
 APP.updateMap = function(){
-  // display pop as it was in 1850 (if available)
+  // display pop as it is at APP.currentYear
   d3.selectAll('.dot')
       .attr("r",d=>{
         //let hy1850 = d.hab_year.filter(hy=>hy.year==1850)
@@ -369,15 +372,27 @@ APP.updateMap = function(){
         d.circleSize = Math.sqrt(+d.pop_calculator(APP.currentYear))/14
         return d.circleSize
       })
-      .attr('fill', function(d){
-        d.hab_year[0]
-        if(d.hab_year[0] && d.hab_year[0].year<=APP.currentYear){
-          return "blue"
-        } else{
-          return "darkgreen"
-        }
-      })
+      .classed('extrapolated', d=> !APP.hasCommuneData(d, APP.currentYear))
+      .classed('intrapolated', d=> APP.hasCommuneData(d, APP.currentYear))
+  
+  d3.selectAll('.dot.intrapolated').classed("hidden",!APP.showCommunesWithData)
+  d3.selectAll('.dot.extrapolated').classed("hidden",!APP.showCommunesWithoutData)
+  
 };
+
+APP.toggleShowCommunesWithData = function(){
+  APP.showCommunesWithData = !APP.showCommunesWithData
+  d3.select("#legend-original-pop-data button")
+      .attr("data-i18n",()=> (APP.showCommunesWithData? "hide":"show")+"-communes-button")
+  APP.updateMap()
+}
+
+APP.toggleShowCommunesWithoutData = function(){
+  APP.showCommunesWithoutData = !APP.showCommunesWithoutData
+  d3.select("#legend-extrapolated-pop-data button")
+      .attr("data-i18n",()=> (APP.showCommunesWithoutData? "hide":"show")+"-communes-button")
+  APP.updateMap()
+}
 
 /*****
 Changing heatmap opacity for better readability

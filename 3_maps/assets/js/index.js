@@ -310,6 +310,10 @@ function pop_calculator(commune) {
   };
 }
 
+APP.hasCommuneData = function (commune, year) {
+  return commune.hab_year[0] && commune.hab_year[0].year <= year;
+};
+
 /*****
 Creating points for communes and adding them to the map
 *****/
@@ -335,9 +339,7 @@ APP.makeCommunes = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(funct
             .attr('cy', function (d) {
               return proj.latLngToLayerPoint(d.latLng).y;
             }) // projecting points
-            .attr('r', 0).attr('fill', function (d) {
-              return "blue";
-            }).style('position', 'relative')
+            .attr('r', 0).style('position', 'relative')
             // .style('stroke','black')
             .attr('opacity', .6).attr('class', function (d) {
               return "communesPop dot";
@@ -435,32 +437,32 @@ APP.updateMap = function () {
     //let radius = hy1850.length>0? hy1850[0].pop: 300
     d.circleSize = Math.sqrt(+d.pop_calculator(APP.currentYear)) / 14;
     return d.circleSize;
-  }).attr('fill', function (d) {
-    d.hab_year[0];
-    if (d.hab_year[0] && d.hab_year[0].year <= APP.currentYear) {
-      return "blue";
-    } else {
-      return "darkgreen";
-    }
+  }).classed('extrapolated', function (d) {
+    return !APP.hasCommuneData(d, APP.currentYear);
+  }).classed('intrapolated', function (d) {
+    return APP.hasCommuneData(d, APP.currentYear);
   });
+
+  d3.selectAll('.dot.intrapolated').classed("hidden", !APP.showCommunesWithData);
+  d3.selectAll('.dot.extrapolated').classed("hidden", !APP.showCommunesWithoutData);
 };
 
-APP.toggleCommunesShownOnMap = function () {
-  // display pop as it is at APP.currentYear
-  d3.selectAll('.dot').attr("r", function (d) {
-    //let hy1850 = d.hab_year.filter(hy=>hy.year==1850)
-    //let radius = hy1850.length>0? hy1850[0].pop: 300
-    d.circleSize = Math.sqrt(+d.pop_calculator(APP.currentYear)) / 14;
-    return d.circleSize;
-  }).attr('fill', function (d) {
-    d.hab_year[0];
-    if (d.hab_year[0] && d.hab_year[0].year <= APP.currentYear) {
-      return "blue";
-    } else {
-      return "darkgreen";
-    }
+APP.toggleShowCommunesWithData = function () {
+  APP.showCommunesWithData = !APP.showCommunesWithData;
+  d3.select("#legend-original-pop-data button").attr("data-i18n", function () {
+    return (APP.showCommunesWithData ? "hide" : "show") + "-communes-button";
   });
+  APP.updateMap();
 };
+
+APP.toggleShowCommunesWithoutData = function () {
+  APP.showCommunesWithoutData = !APP.showCommunesWithoutData;
+  d3.select("#legend-extrapolated-pop-data button").attr("data-i18n", function () {
+    return (APP.showCommunesWithoutData ? "hide" : "show") + "-communes-button";
+  });
+  APP.updateMap();
+};
+
 /*****
 Changing heatmap opacity for better readability
 *****/

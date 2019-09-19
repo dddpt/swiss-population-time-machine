@@ -39,6 +39,16 @@ div.tooltip {
     font-weight: bold;
 }
 
+.dot.intrapolated{
+  fill:blue;
+}
+.dot.extrapolated{
+  fill:darkgreen;
+}
+.dot.hidden{
+  display:none;
+}
+
 /****** GRAPH ******/
 
 #tuto{
