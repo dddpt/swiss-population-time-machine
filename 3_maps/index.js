@@ -401,21 +401,25 @@ Changing heatmap opacity for better readability
 //     d3.selectAll('.leaflet-heatmap-layer').style('opacity',0.4);
 // };
 
-let lastTime = 0
-APP.animate = function(startYear=1300, endYear=1900, timeout=10000, interval=100){
+APP.animate = function(startYear=1300, endYear=1900, timeout=5000, interval=100){
+  let diffYear = endYear-startYear
   let slider = document.getElementById("slider1")
   slider.value = startYear
-  let increment = (endYear-startYear) / (timeout/interval)
-  cl("animate, interval:", interval,", increment:", increment)
-  let intervalId = setInterval(function(){
-    let newTime = +(new Date()) 
-    cl("time: ", newTime,", diff:", newTime-lastTime)
-    lastTime=newTime
-    slider.value = parseInt(slider.value)+increment
-    APP.currentYear = slider.value
+  APP.updateYear()
+  APP.animationStartTime = +new Date()
+  APP.animationIntervalId = setInterval(function(){
+    let newTime = +new Date()
+    APP.currentYear = Math.round(startYear + diffYear * (newTime-APP.animationStartTime) / timeout)
+    slider.value = APP.currentYear
     APP.updateYear()
   }, interval)
-  setTimeout(()=>clearInterval(intervalId),timeout+1)
+  setTimeout(()=>APP.animationStop(endYear),timeout+1)
+}
+APP.animationStop = function(endYear=APP.currentYear){
+  APP.currentYear = endYear
+  document.getElementById("slider1").value = APP.currentYear
+  APP.updateYear()
+  clearInterval(APP.animationIntervalId)
 }
 
 /*****
