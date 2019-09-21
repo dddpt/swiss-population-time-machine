@@ -405,7 +405,7 @@ Changing heatmap opacity for better readability
 Updating innerHTML of buffer size values according to slider value using conversion table
 *****/
 APP.sliderevent = function(){
-    $('.slidBuffer').change(function(){
+    $('.slidBuffer').on("input",function(){
         APP.currentYear = $('#slider1').val()
         APP.updateYear()
     });
