@@ -401,6 +401,23 @@ Changing heatmap opacity for better readability
 //     d3.selectAll('.leaflet-heatmap-layer').style('opacity',0.4);
 // };
 
+let lastTime = 0
+APP.animate = function(startYear=1300, endYear=1900, timeout=10000, interval=100){
+  let slider = document.getElementById("slider1")
+  slider.value = startYear
+  let increment = (endYear-startYear) / (timeout/interval)
+  cl("animate, interval:", interval,", increment:", increment)
+  let intervalId = setInterval(function(){
+    let newTime = +(new Date()) 
+    cl("time: ", newTime,", diff:", newTime-lastTime)
+    lastTime=newTime
+    slider.value = parseInt(slider.value)+increment
+    APP.currentYear = slider.value
+    APP.updateYear()
+  }, interval)
+  setTimeout(()=>clearInterval(intervalId),timeout+1)
+}
+
 /*****
 Updating innerHTML of buffer size values according to slider value using conversion table
 *****/
