@@ -4,7 +4,9 @@
 
 // Creating APP object for storing all Methods
 let APP = {
+  minYear: 1200,
   currentYear: 1536,
+  maxYear: 2000,
   // list of communes
   communes:[],
   communesFile: "3_maps/communes_geo.csv",
@@ -36,7 +38,12 @@ let APP = {
     },
     transitionsDuration: 1000
   },
-  i18nDir: "3_maps/assets/translations/"
+  i18nDir: "3_maps/assets/translations/",
+  animationTotalTime: 5000,
+  animationIntervalTime: 100,
+  animationTimeoutId: undefined,
+  animationIntervalId: undefined,
+  animationStartTime: +new Date()
 };
 
 
@@ -401,7 +408,7 @@ Changing heatmap opacity for better readability
 //     d3.selectAll('.leaflet-heatmap-layer').style('opacity',0.4);
 // };
 
-APP.animate = function(startYear=1300, endYear=1900, timeout=5000, interval=100){
+APP.animate = function(startYear=APP.minYear, endYear=APP.maxYear, timeout=APP.animationTotalTime, interval=APP.animationIntervalTime){
   let diffYear = endYear-startYear
   let slider = document.getElementById("slider1")
   slider.value = startYear
@@ -413,13 +420,18 @@ APP.animate = function(startYear=1300, endYear=1900, timeout=5000, interval=100)
     slider.value = APP.currentYear
     APP.updateYear()
   }, interval)
-  setTimeout(()=>APP.animationStop(endYear),timeout+1)
+  APP.animationTimeoutId = setTimeout(()=>APP.animationStop(endYear),timeout+1)
 }
 APP.animationStop = function(endYear=APP.currentYear){
   APP.currentYear = endYear
   document.getElementById("slider1").value = APP.currentYear
   APP.updateYear()
   clearInterval(APP.animationIntervalId)
+  clearTimeout(APP.animationTimeoutId)
+}
+APP.animationStart = function(){
+  let timeout = APP.animationTotalTime * (APP.maxYear-APP.minYear) / (APP.maxYear-APP.currentYear) 
+  APP.animate(APP.currentYear, APP.maxYear, timeout, APP.animationIntervalTime)
 }
 
 /*****
@@ -427,7 +439,7 @@ Updating innerHTML of buffer size values according to slider value using convers
 *****/
 APP.sliderevent = function(){
     $('.slidBuffer').on("input",function(){
-        APP.currentYear = $('#slider1').val()
+        APP.currentYear = parseInt($('#slider1').val())
         APP.updateYear()
     });
 }
