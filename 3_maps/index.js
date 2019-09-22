@@ -14,6 +14,8 @@ let APP = {
   ygrFile: "3_maps/avg_yearly_growth_rates.csv",
   showCommunesWithData: true,
   showCommunesWithoutData: true,
+  mapTransitionDuration: 0,
+  mapTransitionDurationDefault: 1000,
   graph:{
     // Array of 0 to initialize correct number of dots for scatterplot
     data:[],
@@ -370,17 +372,18 @@ APP.makeCommunes = async function(){
 
 }
 
-APP.updateMap = function(){
+APP.updateMap = function(transitionMsec=APP.mapTransitionDuration){
   // display pop as it is at APP.currentYear
   d3.selectAll('.dot')
+      .classed('extrapolated', d=> !APP.hasCommuneData(d, APP.currentYear))
+      .classed('intrapolated', d=> APP.hasCommuneData(d, APP.currentYear))
+      .transition().duration(transitionMsec)
       .attr("r",d=>{
         //let hy1850 = d.hab_year.filter(hy=>hy.year==1850)
         //let radius = hy1850.length>0? hy1850[0].pop: 300
         d.circleSize = Math.sqrt(+d.pop_calculator(APP.currentYear))/14
         return d.circleSize
       })
-      .classed('extrapolated', d=> !APP.hasCommuneData(d, APP.currentYear))
-      .classed('intrapolated', d=> APP.hasCommuneData(d, APP.currentYear))
   
   d3.selectAll('.dot.intrapolated').classed("hidden",!APP.showCommunesWithData)
   d3.selectAll('.dot.extrapolated').classed("hidden",!APP.showCommunesWithoutData)
@@ -438,10 +441,18 @@ APP.animationStart = function(){
 Updating innerHTML of buffer size values according to slider value using conversion table
 *****/
 APP.sliderevent = function(){
-    $('.slidBuffer').on("input",function(){
-        APP.currentYear = parseInt($('#slider1').val())
-        APP.updateYear()
-    });
+    $('.slidBuffer')
+    .on("input",function(){
+      APP.currentYear = parseInt($('#slider1').val())
+      APP.updateYear()
+    })
+    // allow smooth 1sec transition for clicks and immediate changes when dragging
+    .on("mousedown",function(){
+      setTimeout(()=>{APP.mapTransitionDuration=0},10)
+    })
+    .on("mouseup",function(){
+      setTimeout(()=>{APP.mapTransitionDuration=APP.mapTransitionDurationDefault},11)
+    })
 }
 
 APP.updateYear = function(){
