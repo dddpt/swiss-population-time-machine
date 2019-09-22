@@ -6,7 +6,7 @@
 let APP = {
   minYear: 1200,
   currentYear: 1536,
-  maxYear: 2000,
+  maxYear: 1990,
   // list of communes
   communes:[],
   communesFile: "3_maps/communes_geo.csv",

@@ -6,7 +6,7 @@
   "body-title": "Population of Swiss municipalities over time",
   "current-year-title": "Population in",
   "choose-year": "Choose a year:",
-  "years-range": "1200 to 2000",
+  "years-range": "1200 to 1990",
   "label-original-pop-data": "Original population data ({#nbcommunes} municipalities)",
   "label-extrapolated-pop-data": "Extrapolated population",
   "hide-communes-button": "hide",

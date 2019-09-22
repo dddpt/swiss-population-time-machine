@@ -6,7 +6,7 @@
   "body-title": "Population des communes Suisses à travers le temps",
   "current-year-title": "Population en",
   "choose-year": "Choissez une année:",
-  "years-range": "1200 à 2000",
+  "years-range": "1200 à 1990",
   "label-original-pop-data": "Données originales de population ({#nbcommunes} communes)",
   "label-extrapolated-pop-data": "Population extrapolée",
   "hide-communes-button": "cacher",
