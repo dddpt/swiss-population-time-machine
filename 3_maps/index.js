@@ -41,11 +41,12 @@ let APP = {
     transitionsDuration: 1000
   },
   i18nDir: "3_maps/assets/translations/",
-  animationTotalTime: 5000,
+  animationTotalTime: 7900,
   animationIntervalTime: 100,
   animationTimeoutId: undefined,
   animationIntervalId: undefined,
-  animationStartTime: +new Date()
+  animationStartTime: +new Date(),
+  animationShowPlayButton: true
 };
 
 
@@ -79,11 +80,13 @@ let tooltipGraph;
 Initializing the whole script of the page
 *****/
 APP.main = async function(){
+    APP.togglePlayPauseButtons(true)
     await APP.initMap();
     APP.sliderevent();
     await APP.loadYearlyGrowthRates()
 
     document.getElementById("slider1").value = APP.currentYear; 
+
     APP.updateYear()
 };
 
@@ -412,29 +415,48 @@ Changing heatmap opacity for better readability
 // };
 
 APP.animate = function(startYear=APP.minYear, endYear=APP.maxYear, timeout=APP.animationTotalTime, interval=APP.animationIntervalTime){
+  APP.animationStop()
   let diffYear = endYear-startYear
   let slider = document.getElementById("slider1")
   slider.value = startYear
   APP.updateYear(0)
+  APP.togglePlayPauseButtons(false)
   APP.animationStartTime = +new Date()
-  APP.animationIntervalId = setInterval(function(){
+  let intervalId = setInterval(function(){
     let newTime = +new Date()
     APP.currentYear = Math.round(startYear + diffYear * (newTime-APP.animationStartTime) / timeout)
     slider.value = APP.currentYear
     APP.updateYear(0)
   }, interval)
-  APP.animationTimeoutId = setTimeout(()=>APP.animationStop(endYear),timeout+1)
+  APP.animationIntervalId = intervalId
+  let timeoutId = setTimeout(()=>APP.animationStop(endYear, intervalId, timeoutId),timeout+1)
+  APP.animationTimeoutId = timeoutId
+  return func => setTimeout(func, timeout+1);
 }
-APP.animationStop = function(endYear=APP.currentYear){
+APP.animationStop = function(endYear=APP.currentYear, intervalId=APP.animationIntervalId, timeoutId=APP.animationTimeoutId){
   APP.currentYear = endYear
   document.getElementById("slider1").value = APP.currentYear
   APP.updateYear(0)
-  clearInterval(APP.animationIntervalId)
-  clearTimeout(APP.animationTimeoutId)
+  APP.togglePlayPauseButtons(true)
+  clearInterval(intervalId)
+  clearTimeout(timeoutId)
 }
-APP.animationStart = function(){
-  let timeout = APP.animationTotalTime * (APP.maxYear-APP.minYear) / (APP.maxYear-APP.currentYear) 
-  APP.animate(APP.currentYear, APP.maxYear, timeout, APP.animationIntervalTime)
+APP.animationStart = function(endYear = APP.maxYear){
+  let factor = Math.abs(endYear-APP.currentYear) / (APP.maxYear-APP.minYear)
+  let timeout = APP.animationTotalTime * factor 
+  cl("APP.animationStart timeout",timeout,", endYear",endYear,"  Math.abs(endYear-APP.currentYear) ",Math.abs(endYear-APP.currentYear), ", factor",factor)
+  return APP.animate(APP.currentYear, endYear, timeout, APP.animationIntervalTime)
+}
+
+APP.togglePlayPauseButtons = function(showPlay = !APP.animationShowPlayButton){
+  if(showPlay){  
+    $("#map-pause-button").hide()
+    $("#map-play-button").show()
+  } else{
+    $("#map-pause-button").show()
+    $("#map-play-button").hide()
+  }
+  APP.animationShowPlayButton = showPlay
 }
 
 /*****

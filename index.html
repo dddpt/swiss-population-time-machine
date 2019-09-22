@@ -74,7 +74,13 @@
                   <span id="slideLabel" data-i18n="choose-year"></span></br></br>
                   <input id="slider1" class="slidBuffer" type="range" min=1200 max=1990 step=1 value=1>
                   <div id="slider1_scale" width="100%" style="text-align:center;" data-i18n="years-range"></div>
-              
+                
+              </tr>
+              <tr>
+                  <button type="button" class="btn btn-sm map-animation-btn" onclick="APP.animationStart(Math.max(APP.minYear,APP.currentYear-50))">|&lt;</button>
+                  <button type="button" class="btn btn-sm map-animation-btn" onclick="APP.animationStart()" id="map-play-button">play</button>
+                  <button type="button" class="btn btn-sm map-animation-btn" onclick="APP.animationStop()" id="map-pause-button">pause</button>
+                  <button type="button" class="btn btn-sm map-animation-btn" onclick="APP.animationStart(Math.min(APP.maxYear,APP.currentYear+50))">&gt;|</button>
               </tr>
               <tr width="100%">
                 <div id="legend-original-pop-data">

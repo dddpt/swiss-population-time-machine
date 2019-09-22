@@ -52,6 +52,10 @@ div.tooltip {
   display:none;
 }
 
+.map-animation-btn{
+  margin-right:3px;
+}
+
 /****** GRAPH ******/
 
 #tuto{

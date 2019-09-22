@@ -54,11 +54,12 @@ var APP = {
     transitionsDuration: 1000
   },
   i18nDir: "3_maps/assets/translations/",
-  animationTotalTime: 5000,
+  animationTotalTime: 7900,
   animationIntervalTime: 100,
   animationTimeoutId: undefined,
   animationIntervalId: undefined,
-  animationStartTime: +new Date()
+  animationStartTime: +new Date(),
+  animationShowPlayButton: true
 };
 
 /*****
@@ -92,20 +93,22 @@ APP.main = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _cal
     while (1) {
       switch (_context.prev = _context.next) {
         case 0:
-          _context.next = 2;
+          APP.togglePlayPauseButtons(true);
+          _context.next = 3;
           return APP.initMap();
 
-        case 2:
+        case 3:
           APP.sliderevent();
-          _context.next = 5;
+          _context.next = 6;
           return APP.loadYearlyGrowthRates();
 
-        case 5:
+        case 6:
 
           document.getElementById("slider1").value = APP.currentYear;
+
           APP.updateYear();
 
-        case 7:
+        case 8:
         case "end":
           return _context.stop();
       }
@@ -487,33 +490,60 @@ APP.animate = function () {
   var timeout = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : APP.animationTotalTime;
   var interval = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : APP.animationIntervalTime;
 
+  APP.animationStop();
   var diffYear = endYear - startYear;
   var slider = document.getElementById("slider1");
   slider.value = startYear;
   APP.updateYear(0);
+  APP.togglePlayPauseButtons(false);
   APP.animationStartTime = +new Date();
-  APP.animationIntervalId = setInterval(function () {
+  var intervalId = setInterval(function () {
     var newTime = +new Date();
     APP.currentYear = Math.round(startYear + diffYear * (newTime - APP.animationStartTime) / timeout);
     slider.value = APP.currentYear;
     APP.updateYear(0);
   }, interval);
-  APP.animationTimeoutId = setTimeout(function () {
-    return APP.animationStop(endYear);
+  APP.animationIntervalId = intervalId;
+  var timeoutId = setTimeout(function () {
+    return APP.animationStop(endYear, intervalId, timeoutId);
   }, timeout + 1);
+  APP.animationTimeoutId = timeoutId;
+  return function (func) {
+    return setTimeout(func, timeout + 1);
+  };
 };
 APP.animationStop = function () {
   var endYear = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : APP.currentYear;
+  var intervalId = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : APP.animationIntervalId;
+  var timeoutId = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : APP.animationTimeoutId;
 
   APP.currentYear = endYear;
   document.getElementById("slider1").value = APP.currentYear;
   APP.updateYear(0);
-  clearInterval(APP.animationIntervalId);
-  clearTimeout(APP.animationTimeoutId);
+  APP.togglePlayPauseButtons(true);
+  clearInterval(intervalId);
+  clearTimeout(timeoutId);
 };
 APP.animationStart = function () {
-  var timeout = APP.animationTotalTime * (APP.maxYear - APP.minYear) / (APP.maxYear - APP.currentYear);
-  APP.animate(APP.currentYear, APP.maxYear, timeout, APP.animationIntervalTime);
+  var endYear = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : APP.maxYear;
+
+  var factor = Math.abs(endYear - APP.currentYear) / (APP.maxYear - APP.minYear);
+  var timeout = APP.animationTotalTime * factor;
+  cl("APP.animationStart timeout", timeout, ", endYear", endYear, "  Math.abs(endYear-APP.currentYear) ", Math.abs(endYear - APP.currentYear), ", factor", factor);
+  return APP.animate(APP.currentYear, endYear, timeout, APP.animationIntervalTime);
+};
+
+APP.togglePlayPauseButtons = function () {
+  var showPlay = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : !APP.animationShowPlayButton;
+
+  if (showPlay) {
+    $("#map-pause-button").hide();
+    $("#map-play-button").show();
+  } else {
+    $("#map-pause-button").show();
+    $("#map-play-button").hide();
+  }
+  APP.animationShowPlayButton = showPlay;
 };
 
 /*****
