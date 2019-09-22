@@ -415,20 +415,20 @@ APP.animate = function(startYear=APP.minYear, endYear=APP.maxYear, timeout=APP.a
   let diffYear = endYear-startYear
   let slider = document.getElementById("slider1")
   slider.value = startYear
-  APP.updateYear()
+  APP.updateYear(0)
   APP.animationStartTime = +new Date()
   APP.animationIntervalId = setInterval(function(){
     let newTime = +new Date()
     APP.currentYear = Math.round(startYear + diffYear * (newTime-APP.animationStartTime) / timeout)
     slider.value = APP.currentYear
-    APP.updateYear()
+    APP.updateYear(0)
   }, interval)
   APP.animationTimeoutId = setTimeout(()=>APP.animationStop(endYear),timeout+1)
 }
 APP.animationStop = function(endYear=APP.currentYear){
   APP.currentYear = endYear
   document.getElementById("slider1").value = APP.currentYear
-  APP.updateYear()
+  APP.updateYear(0)
   clearInterval(APP.animationIntervalId)
   clearTimeout(APP.animationTimeoutId)
 }
@@ -455,11 +455,11 @@ APP.sliderevent = function(){
     })
 }
 
-APP.updateYear = function(){
+APP.updateYear = function(transitionMsec=APP.mapTransitionDuration){
   $("#slider1_val").html(APP.currentYear)
   APP.i18n.data("label-original-pop-data",APP.communes.filter(c => c.hab_year[0]? c.hab_year[0].year<=APP.currentYear:false).length)
   //$("#nb-communes-data").html(APP.communes.filter(c => c.hab_year[0]? c.hab_year[0].year<=APP.currentYear:false).length)
-  APP.updateMap()
+  APP.updateMap(transitionMsec)
 }
 
 /*****

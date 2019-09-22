@@ -490,13 +490,13 @@ APP.animate = function () {
   var diffYear = endYear - startYear;
   var slider = document.getElementById("slider1");
   slider.value = startYear;
-  APP.updateYear();
+  APP.updateYear(0);
   APP.animationStartTime = +new Date();
   APP.animationIntervalId = setInterval(function () {
     var newTime = +new Date();
     APP.currentYear = Math.round(startYear + diffYear * (newTime - APP.animationStartTime) / timeout);
     slider.value = APP.currentYear;
-    APP.updateYear();
+    APP.updateYear(0);
   }, interval);
   APP.animationTimeoutId = setTimeout(function () {
     return APP.animationStop(endYear);
@@ -507,7 +507,7 @@ APP.animationStop = function () {
 
   APP.currentYear = endYear;
   document.getElementById("slider1").value = APP.currentYear;
-  APP.updateYear();
+  APP.updateYear(0);
   clearInterval(APP.animationIntervalId);
   clearTimeout(APP.animationTimeoutId);
 };
@@ -537,12 +537,14 @@ APP.sliderevent = function () {
 };
 
 APP.updateYear = function () {
+  var transitionMsec = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : APP.mapTransitionDuration;
+
   $("#slider1_val").html(APP.currentYear);
   APP.i18n.data("label-original-pop-data", APP.communes.filter(function (c) {
     return c.hab_year[0] ? c.hab_year[0].year <= APP.currentYear : false;
   }).length);
   //$("#nb-communes-data").html(APP.communes.filter(c => c.hab_year[0]? c.hab_year[0].year<=APP.currentYear:false).length)
-  APP.updateMap();
+  APP.updateMap(transitionMsec);
 };
 
 /*****
