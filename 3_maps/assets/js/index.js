@@ -154,71 +154,8 @@ APP.initMap = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _
 }));
 
 /*****
-Creating heatmap overlay based on the populated hectares
-*****/
-// APP.makeHeatMap = function(){
-//     // Empty array
-//     let heathect = [];
-//     // Loading population datas
-//     d3.csv("PLZO_CSV_WGS84.csv", function(data) {
-//         // Formatting data for heatLayer function
-//         for(i = 0; i < data.length ; i++){
-//             heathect.push([]);
-//             heathect[i][0] = data[i].Y;
-//             heathect[i][1] = data[i].X;
-//             heathect[i][2] = data[i].B14BTOT;
-//         }
-//
-//         // Adding the heatmap layer to the map - radius and max parameters optimized to get readable map through whole zoom range
-//         let heatmap = L.heatLayer(heathect, {radius: 30, max: 500}).addTo(map);
-//         // Calling method to opacity of heatmap
-//         APP.changeOpacity();
-//     })
-//
-//     // Declaring legend to be place over the map
-//     var legend = L.control({position: 'bottomright'});
-//
-//     legend.onAdd = function (map) {
-//         // Creating div for legend
-//         let div = L.DomUtil.create('div', 'info legend');
-//
-//         // Inserting HTML table for custom gradient color and labels
-//         div.innerHTML = 'POPULATION <table> <tbody> <tr> <td> <canvas id="myCanvas" width="20" height="75" style="border:1px solid #d3d3d3;opacity:0.7"> </canvas> </td> <td> &nbsp; Elevée </br> </br> </br> </br> &nbsp; Faible </td> </tr> </tbody> </table>';
-//         return div;
-//     };
-//
-//     // Adding legend to the map
-//     // legend.addTo(map);
-//
-//     // Calling method for coloring legend
-//     // APP.colorLegend();
-// };
-
-/*****
-Coloring HTML part for the legend
-*****/
-// APP.colorLegend = function(){
-//     // Adding color gradient to the legend
-//     var c = document.getElementById("myCanvas");
-//     var ctx = c.getContext("2d");
-//     var grd = ctx.createLinearGradient(0,0,0,75);
-//
-//     // Creating different stops and color gradient
-//     grd.addColorStop(0, "red");
-//     grd.addColorStop(0.25, "yellow");
-//     grd.addColorStop(0.5, "lime");
-//     grd.addColorStop(0.75, "cyan");
-//     grd.addColorStop(1, "blue");
-//
-//     // Parameters for HTML color gradient
-//     ctx.fillStyle = grd;
-//     ctx.fillRect(0, 0, 256, 256);
-// }
-
-/*****
 Loading yearly growth rates data
 *****/
-
 APP.loadYearlyGrowthRates = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
   return regeneratorRuntime.wrap(function _callee3$(_context3) {
     while (1) {
@@ -246,24 +183,6 @@ APP.loadYearlyGrowthRates = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.m
 }));
 
 // calculates total growth rate between two given year, assumes y1<y2
-APP.calculateGrowthRateOLD = function (y1, y2) {
-  var ygrs12 = APP.ygrs.filter(function (ygr, i) {
-    return (ygr.year >= y1 || APP.ygrs[i + 1] && APP.ygrs[i + 1].year > y1) && ygr.year < y2;
-  });
-  var ygr1 = ygrs12[0];
-  var ygr2 = ygrs12[ygrs12.length - 1];
-  ygrs12 = ygrs12.filter(function (ygr, i) {
-    return i > 0 && i < ygrs12.length - 1;
-  });
-  var y1Duration = ygrs12[0].year - y1;
-  var y2Duration = y2 - ygr2.year;
-  var gr1 = Math.pow(ygr1.ygr, y1Duration);
-  var gr2 = Math.pow(ygr2.ygr, y2Duration);
-  var gr12 = ygrs12.reduce(function (tot, ygr) {
-    return tot * ygr.gr;
-  }, gr1 * gr2);
-  return gr12;
-};
 APP.calculateGrowthRate = function (y1, y2) {
   var ygrs12 = APP.ygrs.filter(function (ygr, i) {
     return (ygr.year >= y1 || APP.ygrs[i + 1] && APP.ygrs[i + 1].year > y1) && ygr.year < y2;
