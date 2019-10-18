@@ -7,3 +7,4 @@ venv/*
 *~lock*
 *.txt
 3_maps/node_modules/*
+*bs.md

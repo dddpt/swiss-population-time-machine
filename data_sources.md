@@ -128,9 +128,13 @@ STATISTIQUES HISTORIQUES
 https://hsso.ch
 http://hist-ecosoc.ch/
 
+Listes des services archéologiques cantonaux:
+https://www.ch-antiquitas.ch/fr/antiquitas/institutions/services-archeologiques/
+
 Statistique suisse des monuments
 https://www.bfs.admin.ch/bfs/fr/home/statistiques/culture-medias-societe-information-sport/enquetes/monuments.assetdetail.4442523.html
 -> recense le nobmre et la surface... peut être surtout intéressant pour contacter des services archéologiques
+
 
 https://archive.org/stream/bub_gb_2boTAAAAYAAJ/bub_gb_2boTAAAAYAAJ_djvu.txt
 
@@ -194,7 +198,4 @@ https://tube.switch.ch/cast/videos/5f05fea2-25b2-4edb-8b58-ae4c02cf5ca1
 https://www.youtube.com/watch?v=f9m72IACk8o
 http://histhub.net/
 https://www.businessparc.ch/de/blog/business-parc-startup-story-kleiolab-juni-2017/
-
-
-
 
