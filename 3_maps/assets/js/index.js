@@ -89,21 +89,25 @@ APP.main = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _cal
       switch (_context.prev = _context.next) {
         case 0:
           APP.togglePlayPauseButtons(true);
-          _context.next = 3;
-          return APP.initMap();
 
-        case 3:
+          APP.hpm = new HistoricPopulationMap("map", [], 'https://api.mapbox.com/styles/v1/nvallott/cjcw1ex6i0zs92smn584yavkn/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibnZhbGxvdHQiLCJhIjoiY2pjdzFkM2diMWFrMzJxcW80eTdnNDhnNCJ9.O853joFyvgOZv7y9IJAnlA', 1536, 1200, 1990);
+          APP.hpm.init();
+          _context.next = 5;
+          return APP.makeCommunes();
+
+        case 5:
+          APP.hpm.communes = APP.communes;
           APP.sliderevent();
-          _context.next = 6;
+          _context.next = 9;
           return APP.loadYearlyGrowthRates();
 
-        case 6:
+        case 9:
 
           document.getElementById("slider1").value = APP.currentYear;
 
           APP.updateYear();
 
-        case 8:
+        case 11:
         case "end":
           return _context.stop();
       }
@@ -270,7 +274,7 @@ APP.makeCommunes = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(funct
                 return 1.3 * d.circleSize;
               });
               // Showing value of buffer in the tooltip
-              tooltipMap.html(function () {
+              APP.hpm.tooltipMap.html(function () {
                 return d.name + ", pop: " + Math.round(d.pop_calculator(APP.currentYear));
               }).transition().duration(50).style('opacity', 0.8).style('left', d3.event.pageX + "px").style('top', d3.event.pageY + "px");
             })
@@ -297,7 +301,7 @@ APP.makeCommunes = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(funct
               d3.select(this).transition().duration(200).attr('r', function (d) {
                 return d.circleSize;
               });
-              tooltipMap.transition().duration(200).style('opacity', 0);
+              APP.hpm.tooltipMap.transition().duration(200).style('opacity', 0);
             });
           });
 
@@ -406,7 +410,7 @@ APP.updateYear = function () {
     return c.hab_year[0] ? c.hab_year[0].year <= APP.currentYear : false;
   }).length);
   //$("#nb-communes-data").html(APP.communes.filter(c => c.hab_year[0]? c.hab_year[0].year<=APP.currentYear:false).length)
-  APP.updateMap(transitionMsec);
+  APP.hpm.updateYear(APP.currentYear, transitionMsec);
 };
 
 /** Returns a linear interpolator from the given dataPoints

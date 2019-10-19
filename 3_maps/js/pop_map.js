@@ -22,7 +22,7 @@ class HistoricPopulationMap{
     this.currentYear = currentYear
     this.minYear = minYear
     this.maxYear = maxYear
-    this.LeafletMapArguments = LeafletMapArguments? LeafletMapArguments : defaultLeafletMapArguments();
+    this.LeafletMapArguments = LeafletMapArguments? LeafletMapArguments : HistoricPopulationMap.defaultLeafletMapArguments();
     this.tooltipMap = undefined
     this.showCommunesWithData = true
     this.showCommunesWithoutData = true
@@ -31,8 +31,8 @@ class HistoricPopulationMap{
   /** Initializes the map background and tooltip object */
   init(){
     // Initiaize the map - definig parameters and adding cartodb basemap
-    let map = new L.map("divId", this.LeafletMapArguments)
-    let cartodb = L.tileLayer(tilesURL, {});
+    map = new L.map(this.divId, this.LeafletMapArguments)
+    let cartodb = L.tileLayer(this.tilesURL, {});
 
     // Getting tooltip ready for showing data
     this.tooltipMap = d3.select('#'+this.divId)
@@ -48,7 +48,7 @@ class HistoricPopulationMap{
    */
   update(transitionMsec=APP.mapTransitionDuration){
     // display pop as it is at APP.currentYear
-    d3.selectAll("#" + this.divId + '.dot')
+    d3.selectAll("#" + this.divId + ' .dot')
         .classed('extrapolated', d=> !APP.hasCommuneData(d, this.currentYear))
         .classed('intrapolated', d=> APP.hasCommuneData(d, this.currentYear))
         .transition().duration(transitionMsec)
@@ -62,9 +62,9 @@ class HistoricPopulationMap{
   };
 
   /** Update the year of data shown */
-  updateYear(year){
+  updateYear(year, transitionMsec=APP.mapTransitionDuration){
     this.currentYear = year
-    this.update()
+    this.update(transitionMsec)
   }
 
   /** Toggles whether do show or hide communes with data at given year */

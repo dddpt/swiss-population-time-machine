@@ -30,7 +30,7 @@ var HistoricPopulationMap = function () {
     this.currentYear = currentYear;
     this.minYear = minYear;
     this.maxYear = maxYear;
-    this.LeafletMapArguments = LeafletMapArguments ? LeafletMapArguments : defaultLeafletMapArguments();
+    this.LeafletMapArguments = LeafletMapArguments ? LeafletMapArguments : HistoricPopulationMap.defaultLeafletMapArguments();
     this.tooltipMap = undefined;
     this.showCommunesWithData = true;
     this.showCommunesWithoutData = true;
@@ -40,11 +40,11 @@ var HistoricPopulationMap = function () {
 
 
   _createClass(HistoricPopulationMap, [{
-    key: "init",
+    key: 'init',
     value: function init() {
       // Initiaize the map - definig parameters and adding cartodb basemap
-      var map = new L.map("divId", this.LeafletMapArguments);
-      var cartodb = L.tileLayer(tilesURL, {});
+      map = new L.map(this.divId, this.LeafletMapArguments);
+      var cartodb = L.tileLayer(this.tilesURL, {});
 
       // Getting tooltip ready for showing data
       this.tooltipMap = d3.select('#' + this.divId).append('div').attr('class', 'tooltip');
@@ -58,14 +58,14 @@ var HistoricPopulationMap = function () {
      */
 
   }, {
-    key: "update",
+    key: 'update',
     value: function update() {
       var _this = this;
 
       var transitionMsec = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : APP.mapTransitionDuration;
 
       // display pop as it is at APP.currentYear
-      d3.selectAll("#" + this.divId + '.dot').classed('extrapolated', function (d) {
+      d3.selectAll("#" + this.divId + ' .dot').classed('extrapolated', function (d) {
         return !APP.hasCommuneData(d, _this.currentYear);
       }).classed('intrapolated', function (d) {
         return APP.hasCommuneData(d, _this.currentYear);
@@ -78,19 +78,21 @@ var HistoricPopulationMap = function () {
       d3.selectAll('.dot.extrapolated').classed("hidden", !this.showCommunesWithoutData);
     }
   }, {
-    key: "updateYear",
+    key: 'updateYear',
 
 
     /** Update the year of data shown */
     value: function updateYear(year) {
+      var transitionMsec = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : APP.mapTransitionDuration;
+
       this.currentYear = year;
-      this.update();
+      this.update(transitionMsec);
     }
 
     /** Toggles whether do show or hide communes with data at given year */
 
   }, {
-    key: "toggleShowCommunesWithData",
+    key: 'toggleShowCommunesWithData',
     value: function toggleShowCommunesWithData() {
       var _this2 = this;
 
@@ -104,7 +106,7 @@ var HistoricPopulationMap = function () {
     /** Toggles whether do show or hide communes without data at given year */
 
   }, {
-    key: "toggleShowCommunesWithoutData",
+    key: 'toggleShowCommunesWithoutData',
     value: function toggleShowCommunesWithoutData() {
       var _this3 = this;
 
@@ -118,7 +120,7 @@ var HistoricPopulationMap = function () {
     /** Default arguments for Leaflet Map background */
 
   }], [{
-    key: "defaultLeafletMapArguments",
+    key: 'defaultLeafletMapArguments',
     value: function defaultLeafletMapArguments() {
       return {
         center: [46.8, 8.2],
@@ -169,7 +171,7 @@ APP.initMap = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _
           return APP.makeCommunes();
 
         case 6:
-        case "end":
+        case 'end':
           return _context.stop();
       }
     }

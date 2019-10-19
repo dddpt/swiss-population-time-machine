@@ -75,7 +75,15 @@ Initializing the whole script of the page
 *****/
 APP.main = async function(){
     APP.togglePlayPauseButtons(true)
-    await APP.initMap();
+
+    APP.hpm = new HistoricPopulationMap(
+      "map", [],
+      'https://api.mapbox.com/styles/v1/nvallott/cjcw1ex6i0zs92smn584yavkn/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibnZhbGxvdHQiLCJhIjoiY2pjdzFkM2diMWFrMzJxcW80eTdnNDhnNCJ9.O853joFyvgOZv7y9IJAnlA',
+      1536, 1200, 1990
+    )
+    APP.hpm.init();
+    await APP.makeCommunes();
+    APP.hpm.communes = APP.communes
     APP.sliderevent();
     await APP.loadYearlyGrowthRates()
 
@@ -216,7 +224,7 @@ APP.makeCommunes = async function(){
                 return 1.3*d.circleSize
             });
             // Showing value of buffer in the tooltip
-            tooltipMap.html(function(){
+            APP.hpm.tooltipMap.html(function(){
                 return `${d.name}, pop: ${Math.round(d.pop_calculator(APP.currentYear))}`
             })
             .transition()
@@ -249,7 +257,7 @@ APP.makeCommunes = async function(){
             .transition()
             .duration(200)
             .attr('r', d=> d.circleSize);
-            tooltipMap.transition()
+            APP.hpm.tooltipMap.transition()
             .duration(200)
             .style('opacity', 0);
         });
@@ -331,7 +339,7 @@ APP.updateYear = function(transitionMsec=APP.mapTransitionDuration){
   $("#slider1_val").html(APP.currentYear)
   APP.i18n.data("label-original-pop-data",APP.communes.filter(c => c.hab_year[0]? c.hab_year[0].year<=APP.currentYear:false).length)
   //$("#nb-communes-data").html(APP.communes.filter(c => c.hab_year[0]? c.hab_year[0].year<=APP.currentYear:false).length)
-  APP.updateMap(transitionMsec)
+  APP.hpm.updateYear(APP.currentYear, transitionMsec)
 }
 
 
