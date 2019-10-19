@@ -177,17 +177,7 @@ APP.makeCommunes = async function(){
         .style('position', 'relative')
         // .style('stroke','black')
         .attr('opacity', .6)
-        .attr('class', function(d){
-            return "communesPop dot"
-            // different class attribute according to transport type
-            // if(d.MOYEN_TRAN.match('CheminFer')){
-            //     return "bigBuff dot"
-            // } else if(d.MOYEN_TRAN == 'Bus'){
-            //     return "smallBuff dot"
-            // } else {
-            //     return "midBuff dot"
-            // }
-        });
+        .attr('class', "communesPop dot");
     });
 
     // Loading the public transportation datas

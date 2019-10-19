@@ -68,7 +68,39 @@ Commune:
 APP.extrapolatePop
 APP.hasCommuneData
 
+PopMap component
+--------------------------------
 
+What is "it" actually?
+- it displays data for points on the map
+	-> with init() and update() 
+- it incorporates a time component
+- it display real vs interpolated data
+
+Proposition:
+- constructor (init())
+	- takes arguments: svg element, communes data, min&maxYear
+	- 
+
+makeCommunes split-up
+--------------------------------
+
+what it does:
+- it loads communes data
+	-> and formats it correctly
+- it creates communesOverlay and all the svg circles
+- it creates the tooltipMap events handling
+- it creates the events links between map and graph
+
+how should it be split up:
+index.js:
+- loading data
+	(later: formatting data in commune.js)
+- adds events on svg circles
+pop_map:
+- creates svg circles
+- tooltipMap events handling
+- provide methods to access svg circles
 
 React + redux
 ================
