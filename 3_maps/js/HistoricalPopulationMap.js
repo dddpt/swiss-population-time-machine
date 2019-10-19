@@ -11,8 +11,8 @@ class HistoricPopulationMap{
    * @param {Array[Commune]} communes array of Commune Objects
    * @param {String} tilesURL a URL from which to fetch the background map data
    * @param {number} currentYear the year at which the map should be displayed, defaults to minYear
-   * @param {number} minYear the minimum year that can be displayed, defaults to the minimum available in all the communes
-   * @param {number} maxYear the maximum year that can be displayed, defaults to the maximum available in all the communes
+   * @param {number} minYear the minimum year that can be displayed
+   * @param {number} maxYear the maximum year that can be displayed
    * @param {Object} LeafletMapArguments the arguments for the Leaflet Map object, default value given by HistoricPopulationMap.defaultLeafletMapArguments()
    */
   constructor(divId, communes, tilesURL, currentYear, minYear, maxYear, LeafletMapArguments){
@@ -34,7 +34,7 @@ class HistoricPopulationMap{
     let self = this
 
     // Initialize the map - definig parameters and adding cartodb basemap
-    map = new L.map(this.divId, this.LeafletMapArguments)
+    let map = new L.map(this.divId, this.LeafletMapArguments)
     let cartodb = L.tileLayer(this.tilesURL, {});
 
     // Getting tooltip ready for showing data
