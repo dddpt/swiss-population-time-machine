@@ -77,7 +77,7 @@ APP.main = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _cal
 
           console.log("APP.communes 0:", APP.communes);
 
-          APP.hpm = new HistoricPopulationMap("map", APP.communes, 'https://api.mapbox.com/styles/v1/nvallott/cjcw1ex6i0zs92smn584yavkn/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibnZhbGxvdHQiLCJhIjoiY2pjdzFkM2diMWFrMzJxcW80eTdnNDhnNCJ9.O853joFyvgOZv7y9IJAnlA', 1536, 1200, 1990);
+          APP.hpm = new HistoricalPopulationMap("map", APP.communes, 'https://api.mapbox.com/styles/v1/nvallott/cjcw1ex6i0zs92smn584yavkn/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibnZhbGxvdHQiLCJhIjoiY2pjdzFkM2diMWFrMzJxcW80eTdnNDhnNCJ9.O853joFyvgOZv7y9IJAnlA', 1536, 1200, 1990);
           APP.hpm.init();
           APP.graph = new HistoricalPopulationGraph("graph", "graphLegend2", 1200, 1990);
 

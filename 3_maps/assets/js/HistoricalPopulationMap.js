@@ -7,9 +7,9 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var HistoricPopulationMap = function () {
+var HistoricalPopulationMap = function () {
 
-  /** HistoricPopulationMap constructor
+  /** HistoricalPopulationMap constructor
    * 
    * @param {String} divId the id of the div in which the map should be put
    * @param {Array[Commune]} communes array of Commune Objects
@@ -17,10 +17,10 @@ var HistoricPopulationMap = function () {
    * @param {number} currentYear the year at which the map should be displayed, defaults to minYear
    * @param {number} minYear the minimum year that can be displayed
    * @param {number} maxYear the maximum year that can be displayed
-   * @param {Object} LeafletMapArguments the arguments for the Leaflet Map object, default value given by HistoricPopulationMap.defaultLeafletMapArguments()
+   * @param {Object} LeafletMapArguments the arguments for the Leaflet Map object, default value given by HistoricalPopulationMap.defaultLeafletMapArguments()
    */
-  function HistoricPopulationMap(divId, communes, tilesURL, currentYear, minYear, maxYear, LeafletMapArguments) {
-    _classCallCheck(this, HistoricPopulationMap);
+  function HistoricalPopulationMap(divId, communes, tilesURL, currentYear, minYear, maxYear, LeafletMapArguments) {
+    _classCallCheck(this, HistoricalPopulationMap);
 
     this.divId = divId;
     this.communes = communes;
@@ -28,7 +28,7 @@ var HistoricPopulationMap = function () {
     this.currentYear = currentYear;
     this.minYear = minYear;
     this.maxYear = maxYear;
-    this.LeafletMapArguments = LeafletMapArguments ? LeafletMapArguments : HistoricPopulationMap.defaultLeafletMapArguments();
+    this.LeafletMapArguments = LeafletMapArguments ? LeafletMapArguments : HistoricalPopulationMap.defaultLeafletMapArguments();
     this.tooltip = undefined;
     this.showCommunesWithData = true;
     this.showCommunesWithoutData = true;
@@ -37,7 +37,7 @@ var HistoricPopulationMap = function () {
   /** Initializes the map background and tooltip object */
 
 
-  _createClass(HistoricPopulationMap, [{
+  _createClass(HistoricalPopulationMap, [{
     key: 'init',
     value: function init() {
       // useful for functions not owned by this
@@ -174,5 +174,5 @@ var HistoricPopulationMap = function () {
     }
   }]);
 
-  return HistoricPopulationMap;
+  return HistoricalPopulationMap;
 }();

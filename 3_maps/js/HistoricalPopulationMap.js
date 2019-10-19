@@ -3,9 +3,9 @@
 // SPTM - Didier Dupertuis & Nicolas Vallotton - Avril 2019
 
 
-class HistoricPopulationMap{
+class HistoricalPopulationMap{
   
-  /** HistoricPopulationMap constructor
+  /** HistoricalPopulationMap constructor
    * 
    * @param {String} divId the id of the div in which the map should be put
    * @param {Array[Commune]} communes array of Commune Objects
@@ -13,7 +13,7 @@ class HistoricPopulationMap{
    * @param {number} currentYear the year at which the map should be displayed, defaults to minYear
    * @param {number} minYear the minimum year that can be displayed
    * @param {number} maxYear the maximum year that can be displayed
-   * @param {Object} LeafletMapArguments the arguments for the Leaflet Map object, default value given by HistoricPopulationMap.defaultLeafletMapArguments()
+   * @param {Object} LeafletMapArguments the arguments for the Leaflet Map object, default value given by HistoricalPopulationMap.defaultLeafletMapArguments()
    */
   constructor(divId, communes, tilesURL, currentYear, minYear, maxYear, LeafletMapArguments){
     this.divId = divId
@@ -22,7 +22,7 @@ class HistoricPopulationMap{
     this.currentYear = currentYear
     this.minYear = minYear
     this.maxYear = maxYear
-    this.LeafletMapArguments = LeafletMapArguments? LeafletMapArguments : HistoricPopulationMap.defaultLeafletMapArguments();
+    this.LeafletMapArguments = LeafletMapArguments? LeafletMapArguments : HistoricalPopulationMap.defaultLeafletMapArguments();
     this.tooltip = undefined
     this.showCommunesWithData = true
     this.showCommunesWithoutData = true
