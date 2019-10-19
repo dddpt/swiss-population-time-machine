@@ -98,9 +98,9 @@ index.js:
 	(later: formatting data in commune.js)
 - adds events on svg circles
 pop_map:
-- creates svg circles
-- tooltipMap events handling
-- provide methods to access svg circles
+- creates communesOverlay and all the svg circles		-> initMap
+- tooltipMap events handling							-> initMap
+- provide methods to access svg circles					method
 
 React + redux
 ================

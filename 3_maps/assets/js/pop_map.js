@@ -5,8 +5,6 @@
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var HistoricPopulationMap = function () {
@@ -31,7 +29,7 @@ var HistoricPopulationMap = function () {
     this.minYear = minYear;
     this.maxYear = maxYear;
     this.LeafletMapArguments = LeafletMapArguments ? LeafletMapArguments : HistoricPopulationMap.defaultLeafletMapArguments();
-    this.tooltipMap = undefined;
+    this.tooltip = undefined;
     this.showCommunesWithData = true;
     this.showCommunesWithoutData = true;
   }
@@ -40,17 +38,56 @@ var HistoricPopulationMap = function () {
 
 
   _createClass(HistoricPopulationMap, [{
-    key: 'init',
+    key: "init",
     value: function init() {
+      // useful for functions not owned by this
+      var self = this;
+
+      cl("init start, com 0", String(Object.keys(this.communes[0])));
       // Initiaize the map - definig parameters and adding cartodb basemap
       map = new L.map(this.divId, this.LeafletMapArguments);
       var cartodb = L.tileLayer(this.tilesURL, {});
 
       // Getting tooltip ready for showing data
-      this.tooltipMap = d3.select('#' + this.divId).append('div').attr('class', 'tooltip');
+      this.tooltip = d3.select('#' + this.divId).append('div').attr('class', 'tooltip');
 
       // Add the cartodb layer to the map
       cartodb.addTo(map);
+
+      // Creating the communes' data circles layer with
+      // leaflet d3 svg overlay according to correct projection
+      var communesOverlay = L.d3SvgOverlay(function (sel, proj) {
+        // careful: here, "this" refers to internal L.d3SvgOverlay component, 
+        // not HPM instance
+        var communesUpd = sel.selectAll('circle').data(self.communes);
+        communesUpd.enter().append("circle").attr('cx', function (d) {
+          return proj.latLngToLayerPoint(d.latLng).x;
+        }) // projecting points
+        .attr('cy', function (d) {
+          return proj.latLngToLayerPoint(d.latLng).y;
+        }) // projecting points
+        .attr('r', 0).style('position', 'relative').attr('opacity', .6).attr('class', "communesPop dot");
+      });
+      // Adding layer to the map
+      communesOverlay.addTo(map);
+
+      // on mouseenter: slightly increase circle size + show tooltip
+      this.dataCircles().on('mouseenter', function (d) {
+        d3.select(this).transition().duration(100).attr('r', function (d) {
+          return 1.3 * d.circleSize;
+        });
+        // Showing pop at given year in the tooltip
+        self.tooltip.html(function () {
+          return d.name + ", pop: " + Math.round(d.pop_calculator(self.currentYear));
+        }).transition().duration(50).style('opacity', 0.8).style('left', d3.event.pageX + "px").style('top', d3.event.pageY + "px");
+      })
+      // on mouseout: reset normal circle size + hide tooltip
+      .on('mouseout', function () {
+        d3.select(this).transition().duration(200).attr('r', function (d) {
+          return d.circleSize;
+        });
+        self.tooltip.transition().duration(200).style('opacity', 0);
+      });
     }
 
     /** Updates visible states of all the dots: size, color (interpolated/real data) and display status
@@ -58,14 +95,14 @@ var HistoricPopulationMap = function () {
      */
 
   }, {
-    key: 'update',
+    key: "update",
     value: function update() {
       var _this = this;
 
       var transitionMsec = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : APP.mapTransitionDuration;
 
       // display pop as it is at APP.currentYear
-      d3.selectAll("#" + this.divId + ' .dot').classed('extrapolated', function (d) {
+      this.dataCircles().classed('extrapolated', function (d) {
         return !APP.hasCommuneData(d, _this.currentYear);
       }).classed('intrapolated', function (d) {
         return APP.hasCommuneData(d, _this.currentYear);
@@ -78,7 +115,7 @@ var HistoricPopulationMap = function () {
       d3.selectAll('.dot.extrapolated').classed("hidden", !this.showCommunesWithoutData);
     }
   }, {
-    key: 'updateYear',
+    key: "updateYear",
 
 
     /** Update the year of data shown */
@@ -89,10 +126,18 @@ var HistoricPopulationMap = function () {
       this.update(transitionMsec);
     }
 
+    /** Returns a d3 selection of all the commuens' data circles */
+
+  }, {
+    key: "dataCircles",
+    value: function dataCircles() {
+      return d3.selectAll("#" + this.divId + ' .dot');
+    }
+
     /** Toggles whether do show or hide communes with data at given year */
 
   }, {
-    key: 'toggleShowCommunesWithData',
+    key: "toggleShowCommunesWithData",
     value: function toggleShowCommunesWithData() {
       var _this2 = this;
 
@@ -106,11 +151,11 @@ var HistoricPopulationMap = function () {
     /** Toggles whether do show or hide communes without data at given year */
 
   }, {
-    key: 'toggleShowCommunesWithoutData',
+    key: "toggleShowCommunesWithoutData",
     value: function toggleShowCommunesWithoutData() {
       var _this3 = this;
 
-      APP.showCommunesWithoutData = !APP.showCommunesWithoutData;
+      this.showCommunesWithoutData = !this.showCommunesWithoutData;
       d3.select("#legend-extrapolated-pop-data button").attr("data-i18n", function () {
         return (_this3.showCommunesWithoutData ? "hide" : "show") + "-communes-button";
       });
@@ -120,7 +165,7 @@ var HistoricPopulationMap = function () {
     /** Default arguments for Leaflet Map background */
 
   }], [{
-    key: 'defaultLeafletMapArguments',
+    key: "defaultLeafletMapArguments",
     value: function defaultLeafletMapArguments() {
       return {
         center: [46.8, 8.2],
@@ -134,81 +179,3 @@ var HistoricPopulationMap = function () {
 
   return HistoricPopulationMap;
 }();
-
-// Tooltip of the map
-
-
-var map = void 0;
-var tooltipMap = void 0;
-
-/*****
-Initializing map - leaflet with cartodb basemap and tooltip ready
-*****/
-APP.initMap = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-  var cartodb;
-  return regeneratorRuntime.wrap(function _callee$(_context) {
-    while (1) {
-      switch (_context.prev = _context.next) {
-        case 0:
-          // Initiaize the map - definig parameters and adding cartodb basemap
-          map = new L.map("map", { center: [46.8, 8.2], zoom: 8, minZoom: 8, maxZoom: 20, maxBounds: [[44.5, 4.5], [49, 12]] });
-          cartodb = L.tileLayer('https://api.mapbox.com/styles/v1/nvallott/cjcw1ex6i0zs92smn584yavkn/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibnZhbGxvdHQiLCJhIjoiY2pjdzFkM2diMWFrMzJxcW80eTdnNDhnNCJ9.O853joFyvgOZv7y9IJAnlA', {
-            // let cartodb = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
-            // attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy;<a href="https://carto.com/attribution">CARTO</a>'
-          });
-
-          // Getting tooltip ready for showing data
-
-          tooltipMap = d3.select('#map').append('div').attr('class', 'tooltip');
-
-          // Add the cartodb layer to the map
-          cartodb.addTo(map);
-
-          // Calling metho to create heatmap overlay
-          // APP.makeHeatMap();
-          // Calling method to create - has to wait for the map to be created
-          _context.next = 6;
-          return APP.makeCommunes();
-
-        case 6:
-        case 'end':
-          return _context.stop();
-      }
-    }
-  }, _callee, this);
-}));
-
-APP.updateMap = function () {
-  var transitionMsec = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : APP.mapTransitionDuration;
-
-  // display pop as it is at APP.currentYear
-  d3.selectAll('.dot').classed('extrapolated', function (d) {
-    return !APP.hasCommuneData(d, APP.currentYear);
-  }).classed('intrapolated', function (d) {
-    return APP.hasCommuneData(d, APP.currentYear);
-  }).transition().duration(transitionMsec).attr("r", function (d) {
-    //let hy1850 = d.hab_year.filter(hy=>hy.year==1850)
-    //let radius = hy1850.length>0? hy1850[0].pop: 300
-    d.circleSize = Math.sqrt(+d.pop_calculator(APP.currentYear)) / 14;
-    return d.circleSize;
-  });
-
-  d3.selectAll('.dot.intrapolated').classed("hidden", !APP.showCommunesWithData);
-  d3.selectAll('.dot.extrapolated').classed("hidden", !APP.showCommunesWithoutData);
-};
-
-APP.toggleShowCommunesWithData = function () {
-  APP.showCommunesWithData = !APP.showCommunesWithData;
-  d3.select("#legend-original-pop-data button").attr("data-i18n", function () {
-    return (APP.showCommunesWithData ? "hide" : "show") + "-communes-button";
-  });
-  APP.updateMap();
-};
-
-APP.toggleShowCommunesWithoutData = function () {
-  APP.showCommunesWithoutData = !APP.showCommunesWithoutData;
-  d3.select("#legend-extrapolated-pop-data button").attr("data-i18n", function () {
-    return (APP.showCommunesWithoutData ? "hide" : "show") + "-communes-button";
-  });
-  APP.updateMap();
-};

@@ -90,24 +90,51 @@ APP.main = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _cal
         case 0:
           APP.togglePlayPauseButtons(true);
 
-          APP.hpm = new HistoricPopulationMap("map", [], 'https://api.mapbox.com/styles/v1/nvallott/cjcw1ex6i0zs92smn584yavkn/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibnZhbGxvdHQiLCJhIjoiY2pjdzFkM2diMWFrMzJxcW80eTdnNDhnNCJ9.O853joFyvgOZv7y9IJAnlA', 1536, 1200, 1990);
-          APP.hpm.init();
-          _context.next = 5;
-          return APP.makeCommunes();
+          // load communes data
+          _context.next = 3;
+          return d3.dsv(";", APP.communesFile, function (commune) {
+            commune.hab_year = JSON.parse(commune.hab_year.replace(/'/g, '"'));
+            commune.hab_year = commune.hab_year.sort(function (a, b) {
+              return a.year - b.year;
+            });
+            commune.pop_calculator = pop_calculator(commune);
+            commune.canton = commune.canton_x;
+            commune.canton_x = null;
+            commune.canton_y = null;
+            commune.latLng = [+commune.Y, +commune.X];
+            return commune;
+          });
 
-        case 5:
-          APP.hpm.communes = APP.communes;
+        case 3:
+          APP.communes = _context.sent;
+
+
+          console.log("APP.communes 0:", APP.communes);
+
+          APP.hpm = new HistoricPopulationMap("map", APP.communes, 'https://api.mapbox.com/styles/v1/nvallott/cjcw1ex6i0zs92smn584yavkn/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibnZhbGxvdHQiLCJhIjoiY2pjdzFkM2diMWFrMzJxcW80eTdnNDhnNCJ9.O853joFyvgOZv7y9IJAnlA', 1536, 1200, 1990);
+          APP.hpm.init();
+
+          // communes circle onclick: display on graph
+          APP.hpm.dataCircles().on('click', function (d) {
+            if (APP.graph.initialized) {
+              APP.addCommuneToGraph(d);
+            } else {
+              APP.graph.initialized = true;
+              APP.initGraph(d);
+            }
+          });
+
           APP.sliderevent();
-          _context.next = 9;
+          _context.next = 11;
           return APP.loadYearlyGrowthRates();
 
-        case 9:
+        case 11:
 
           document.getElementById("slider1").value = APP.currentYear;
 
           APP.updateYear();
 
-        case 11:
+        case 13:
         case "end":
           return _context.stop();
       }
@@ -206,119 +233,6 @@ function pop_calculator(commune) {
 APP.hasCommuneData = function (commune, year) {
   return commune.hab_year[0] && commune.hab_year[0].year <= year;
 };
-
-/*****
-Creating points for communes and adding them to the map
-*****/
-var du = 32;
-APP.makeCommunes = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
-  var communes, communesOverlay;
-  return regeneratorRuntime.wrap(function _callee3$(_context3) {
-    while (1) {
-      switch (_context3.prev = _context3.next) {
-        case 0:
-          console.log("coucou");
-          // Empty array to store
-          communes = [];
-
-          // Creating the public transportation layer with leaflet d3 svg overlay according to correct projection
-
-          communesOverlay = L.d3SvgOverlay(function (sel, proj) {
-            console.log(communes);
-            var communesUpd = sel.selectAll('circle').data(communes);
-            communesUpd.enter().append("circle").attr('cx', function (d) {
-              return proj.latLngToLayerPoint(d.latLng).x;
-            }) // projecting points
-            .attr('cy', function (d) {
-              return proj.latLngToLayerPoint(d.latLng).y;
-            }) // projecting points
-            .attr('r', 0).style('position', 'relative')
-            // .style('stroke','black')
-            .attr('opacity', .6).attr('class', "communesPop dot");
-          });
-
-          // Loading the public transportation datas
-
-          _context3.next = 5;
-          return d3.dsv(";", APP.communesFile, function (commune) {
-            commune.hab_year = JSON.parse(commune.hab_year.replace(/'/g, '"'));
-            commune.hab_year = commune.hab_year.sort(function (a, b) {
-              return a.year - b.year;
-            });
-            //cl("commune.hab_year: ", commune.raw_hab_year.replace(/'/g,'"'))
-            //commune.raw_hab_year = JSON.parse(commune.raw_hab_year.replace(/'/g,'"'))
-            //commune.pop_interpolator = exponentialInterpolator(commune.hab_year.map(hy=>[hy.year,hy.pop]))
-            commune.pop_calculator = pop_calculator(commune);
-            commune.canton = commune.canton_x;
-            commune.canton_x = null;
-            commune.canton_y = null;
-            // prepare interpolation:
-            // points = [{x:1,y:8},{x:3,y:3},{x:9,y:33},{x:19,y:11},{x:21,y:2},{x:33,y:12}]
-            // interpolation.single(points)({x:4})
-            return commune;
-          }).then(function (data) {
-            // mapping data to get proper latLong values
-            communes = data.map(function (d) {
-              d.latLng = [+d.Y, +d.X];
-              return d;
-            });
-            APP.communes = communes;
-
-            // Adding layer to the map
-            communesOverlay.addTo(map);
-
-            d3.selectAll('.dot')
-            // Changing buffer size according to selected values on mouseover + tooltip infos
-            .on('mouseenter', function (d) {
-              d3.select(this).transition().duration(100).attr('r', function (d) {
-                return 1.3 * d.circleSize;
-              });
-              // Showing value of buffer in the tooltip
-              APP.hpm.tooltipMap.html(function () {
-                return d.name + ", pop: " + Math.round(d.pop_calculator(APP.currentYear));
-              }).transition().duration(50).style('opacity', 0.8).style('left', d3.event.pageX + "px").style('top', d3.event.pageY + "px");
-            })
-            // Change html header for the graphic when buffer is clicked
-            .on('click', function (d) {
-              /*$('#graphLegend').html(function(){
-                  return `<table width="100%">
-                  <tr id="arret"> <td> </td> <td>  ${APP.currentYear} </td> <td> </td> </tr>
-                  </table>
-                  <table width="100%">
-                  <tr> <td> Canton : ${d.canton} </td> <td> &nbsp; </td> <td> Numéro OFS : ${d.bfsnr} </td> </tr>
-                  </table>`;
-              })*/
-              // If the graph has been launched once, update it - Else, initialize it
-              if (APP.graph.initialized) {
-                APP.addCommuneToGraph(d);
-              } else {
-                APP.graph.initialized = true;
-                APP.initGraph(d);
-              }
-            })
-            // Reset normal size on buffer point on mouseout
-            .on('mouseout', function () {
-              d3.select(this).transition().duration(200).attr('r', function (d) {
-                return d.circleSize;
-              });
-              APP.hpm.tooltipMap.transition().duration(200).style('opacity', 0);
-            });
-          });
-
-        case 5:
-        case "end":
-          return _context3.stop();
-      }
-    }
-  }, _callee3, this);
-}));
-
-/*****
-Changing heatmap opacity for better readability
-*****/
-// APP.changeOpacity = function(){
-//     d3.selectAll('.leaflet-heatmap-layer').style('opacity',0.4);
-// };
 
 APP.animate = function () {
   var startYear = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : APP.minYear;
