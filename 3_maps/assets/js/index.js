@@ -19,40 +19,6 @@ var APP = {
   showCommunesWithoutData: true,
   mapTransitionDuration: 0,
   mapTransitionDurationDefault: 1000,
-  graph: {
-    // Array of 0 to initialize correct number of dots for scatterplot
-    data: [],
-    // Boolean to check if graph has already been initialized
-    initialized: false,
-    // Max nb of communes to display on graph:
-    maxSize: 3,
-    // returns a class for points and lines of given commune
-    pointsClass: function pointsClass(commune) {
-      return 'point-' + commune.name.replace(/\W/g, "-");
-    },
-    lineClass: function lineClass(commune) {
-      return 'line-' + commune.name.replace(/\W/g, "-");
-    },
-    legendId: function legendId(commune) {
-      return 'legend-' + commune.name.replace(/\W/g, "-");
-    },
-    counter: 0,
-    // given a number returns
-    colors: [0.2, 0.4, 0.6, 0.8].map(d3.interpolateRainbow),
-    colorScale: function colorScale() {
-      var usedColors = APP.graph.data.map(function (c) {
-        return c.graphColor;
-      });
-      var freeColors = APP.graph.colors.filter(function (color) {
-        return !usedColors.includes(color);
-      });
-      if (freeColors.length > 0) {
-        return freeColors[0];
-      }
-      return "black";
-    },
-    transitionsDuration: 1000
-  },
   i18nDir: "3_maps/assets/translations/",
   animationTotalTime: 7900,
   animationIntervalTime: 100,
@@ -113,28 +79,24 @@ APP.main = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _cal
 
           APP.hpm = new HistoricPopulationMap("map", APP.communes, 'https://api.mapbox.com/styles/v1/nvallott/cjcw1ex6i0zs92smn584yavkn/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibnZhbGxvdHQiLCJhIjoiY2pjdzFkM2diMWFrMzJxcW80eTdnNDhnNCJ9.O853joFyvgOZv7y9IJAnlA', 1536, 1200, 1990);
           APP.hpm.init();
+          APP.graph = new HistoricalPopulationGraph("graph", "graphLegend2", 1200, 1990);
 
           // communes circle onclick: display on graph
-          APP.hpm.dataCircles().on('click', function (d) {
-            if (APP.graph.initialized) {
-              APP.addCommuneToGraph(d);
-            } else {
-              APP.graph.initialized = true;
-              APP.initGraph(d);
-            }
+          APP.hpm.dataCircles().on('click', function (c) {
+            return APP.graph.addCommune(c);
           });
 
           APP.sliderevent();
-          _context.next = 11;
+          _context.next = 12;
           return APP.loadYearlyGrowthRates();
 
-        case 11:
+        case 12:
 
           document.getElementById("slider1").value = APP.currentYear;
 
           APP.updateYear();
 
-        case 13:
+        case 14:
         case "end":
           return _context.stop();
       }

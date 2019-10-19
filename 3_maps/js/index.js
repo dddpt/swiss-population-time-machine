@@ -16,30 +16,6 @@ let APP = {
   showCommunesWithoutData: true,
   mapTransitionDuration: 0,
   mapTransitionDurationDefault: 1000,
-  graph:{
-    // Array of 0 to initialize correct number of dots for scatterplot
-    data:[],
-    // Boolean to check if graph has already been initialized
-    initialized: false,
-    // Max nb of communes to display on graph:
-    maxSize: 3,
-    // returns a class for points and lines of given commune
-    pointsClass: commune => 'point-'+commune.name.replace(/\W/g,"-"),
-    lineClass: commune => 'line-'+commune.name.replace(/\W/g,"-"),
-    legendId: commune => 'legend-'+commune.name.replace(/\W/g,"-"),
-    counter:0,
-    // given a number returns
-    colors: [0.2,0.4,0.6,0.8].map(d3.interpolateRainbow),
-    colorScale: function(){
-      let usedColors = APP.graph.data.map(c=>c.graphColor)
-      let freeColors = APP.graph.colors.filter(color => !usedColors.includes(color))
-      if(freeColors.length>0){
-        return freeColors[0]
-      }
-      return "black"
-    },
-    transitionsDuration: 1000
-  },
   i18nDir: "3_maps/assets/translations/",
   animationTotalTime: 7900,
   animationIntervalTime: 100,
@@ -96,15 +72,14 @@ APP.main = async function(){
       1536, 1200, 1990
     )
     APP.hpm.init();
+    APP.graph = new HistoricalPopulationGraph(
+      "graph",
+      "graphLegend2",
+      1200, 1990
+    )
 
     // communes circle onclick: display on graph
-    APP.hpm.dataCircles().on('click', function(d){
-      if(!APP.graph.initialized){
-          APP.graph.initialized = true;
-          APP.initGraph();
-      }
-      APP.addCommuneToGraph(d);
-    })
+    APP.hpm.dataCircles().on('click', c => APP.graph.addCommune(c))
 
     APP.sliderevent();
     await APP.loadYearlyGrowthRates()
