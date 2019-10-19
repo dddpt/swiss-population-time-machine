@@ -33,8 +33,7 @@ class HistoricPopulationMap{
     // useful for functions not owned by this
     let self = this
 
-    cl("init start, com 0", String(Object.keys(this.communes[0])))
-    // Initiaize the map - definig parameters and adding cartodb basemap
+    // Initialize the map - definig parameters and adding cartodb basemap
     map = new L.map(this.divId, this.LeafletMapArguments)
     let cartodb = L.tileLayer(this.tilesURL, {});
 
@@ -64,8 +63,9 @@ class HistoricPopulationMap{
     // Adding layer to the map
     communesOverlay.addTo(map);
 
-    // on mouseenter: slightly increase circle size + show tooltip
+    
     this.dataCircles()
+      // on mouseenter: slightly increase circle size + show tooltip
       .on('mouseenter',function(d){
         d3.select(this)
           .transition()
@@ -73,7 +73,6 @@ class HistoricPopulationMap{
           .attr('r', function(d){
               return 1.3*d.circleSize
           });
-        // Showing pop at given year in the tooltip
         self.tooltip.html(function(){
             return `${d.name}, pop: ${Math.round(d.pop_calculator(self.currentYear))}`
         })
@@ -95,9 +94,7 @@ class HistoricPopulationMap{
       });
   }
 
-  /** Updates visible states of all the dots: size, color (interpolated/real data) and display status
-   * 
-   */
+  /** Updates visible states of all the dots: size, color (interpolated/real data) and display status */
   update(transitionMsec=APP.mapTransitionDuration){
     // display pop as it is at APP.currentYear
     this.dataCircles()
@@ -120,9 +117,7 @@ class HistoricPopulationMap{
   }
 
   /** Returns a d3 selection of all the commuens' data circles */
-  dataCircles(){
-    return d3.selectAll("#" + this.divId + ' .dot')
-  }
+  dataCircles(){return d3.selectAll("#" + this.divId + ' .dot')}
 
   /** Toggles whether do show or hide communes with data at given year */
   toggleShowCommunesWithData(){

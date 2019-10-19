@@ -38,13 +38,12 @@ var HistoricPopulationMap = function () {
 
 
   _createClass(HistoricPopulationMap, [{
-    key: "init",
+    key: 'init',
     value: function init() {
       // useful for functions not owned by this
       var self = this;
 
-      cl("init start, com 0", String(Object.keys(this.communes[0])));
-      // Initiaize the map - definig parameters and adding cartodb basemap
+      // Initialize the map - definig parameters and adding cartodb basemap
       map = new L.map(this.divId, this.LeafletMapArguments);
       var cartodb = L.tileLayer(this.tilesURL, {});
 
@@ -71,15 +70,15 @@ var HistoricPopulationMap = function () {
       // Adding layer to the map
       communesOverlay.addTo(map);
 
+      this.dataCircles()
       // on mouseenter: slightly increase circle size + show tooltip
-      this.dataCircles().on('mouseenter', function (d) {
+      .on('mouseenter', function (d) {
         d3.select(this).transition().duration(100).attr('r', function (d) {
           return 1.3 * d.circleSize;
         });
-        // Showing pop at given year in the tooltip
         self.tooltip.html(function () {
-          return d.name + ", pop: " + Math.round(d.pop_calculator(self.currentYear));
-        }).transition().duration(50).style('opacity', 0.8).style('left', d3.event.pageX + "px").style('top', d3.event.pageY + "px");
+          return d.name + ', pop: ' + Math.round(d.pop_calculator(self.currentYear));
+        }).transition().duration(50).style('opacity', 0.8).style('left', d3.event.pageX + 'px').style('top', d3.event.pageY + 'px');
       })
       // on mouseout: reset normal circle size + hide tooltip
       .on('mouseout', function () {
@@ -90,12 +89,10 @@ var HistoricPopulationMap = function () {
       });
     }
 
-    /** Updates visible states of all the dots: size, color (interpolated/real data) and display status
-     * 
-     */
+    /** Updates visible states of all the dots: size, color (interpolated/real data) and display status */
 
   }, {
-    key: "update",
+    key: 'update',
     value: function update() {
       var _this = this;
 
@@ -115,7 +112,7 @@ var HistoricPopulationMap = function () {
       d3.selectAll('.dot.extrapolated').classed("hidden", !this.showCommunesWithoutData);
     }
   }, {
-    key: "updateYear",
+    key: 'updateYear',
 
 
     /** Update the year of data shown */
@@ -129,7 +126,7 @@ var HistoricPopulationMap = function () {
     /** Returns a d3 selection of all the commuens' data circles */
 
   }, {
-    key: "dataCircles",
+    key: 'dataCircles',
     value: function dataCircles() {
       return d3.selectAll("#" + this.divId + ' .dot');
     }
@@ -137,7 +134,7 @@ var HistoricPopulationMap = function () {
     /** Toggles whether do show or hide communes with data at given year */
 
   }, {
-    key: "toggleShowCommunesWithData",
+    key: 'toggleShowCommunesWithData',
     value: function toggleShowCommunesWithData() {
       var _this2 = this;
 
@@ -151,7 +148,7 @@ var HistoricPopulationMap = function () {
     /** Toggles whether do show or hide communes without data at given year */
 
   }, {
-    key: "toggleShowCommunesWithoutData",
+    key: 'toggleShowCommunesWithoutData',
     value: function toggleShowCommunesWithoutData() {
       var _this3 = this;
 
@@ -165,7 +162,7 @@ var HistoricPopulationMap = function () {
     /** Default arguments for Leaflet Map background */
 
   }], [{
-    key: "defaultLeafletMapArguments",
+    key: 'defaultLeafletMapArguments',
     value: function defaultLeafletMapArguments() {
       return {
         center: [46.8, 8.2],
