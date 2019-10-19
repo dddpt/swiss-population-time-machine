@@ -69,8 +69,6 @@ APP.initGraph = function(data){
       .text("Année");
 
 
-    // Calling method to update graph according to current data
-    APP.addCommuneToGraph(data);
 }
 
 APP.addCommuneToGraph = function(newCommune){

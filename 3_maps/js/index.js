@@ -99,12 +99,11 @@ APP.main = async function(){
 
     // communes circle onclick: display on graph
     APP.hpm.dataCircles().on('click', function(d){
-      if(APP.graph.initialized){
-          APP.addCommuneToGraph(d);
-      } else {
+      if(!APP.graph.initialized){
           APP.graph.initialized = true;
-          APP.initGraph(d);
+          APP.initGraph();
       }
+      APP.addCommuneToGraph(d);
     })
 
     APP.sliderevent();
