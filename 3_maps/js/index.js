@@ -16,7 +16,7 @@ export let APP = {
   ygrFile: "3_maps/avg_yearly_growth_rates.csv",
   showCommunesWithData: true,
   showCommunesWithoutData: true,
-  mapTransitionDuration: 0,
+  mapTransitionDuration: 1000,
   mapTransitionDurationDefault: 1000,
   i18nDir: "3_maps/assets/translations/",
   animationTotalTime: 7900,
