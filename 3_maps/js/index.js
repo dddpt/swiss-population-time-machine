@@ -1,4 +1,5 @@
 import {HistoricalPopulationGraph} from "./HistoricalPopulationGraph.js"
+import {HistoricalPopulationMap} from "./HistoricalPopulationMap.js"
 "use strict";
 
 // SPTM - Didier Dupertuis & Nicolas Vallotton - Avril 2019

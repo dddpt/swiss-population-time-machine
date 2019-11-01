@@ -3,7 +3,7 @@
 // SPTM - Didier Dupertuis & Nicolas Vallotton - Avril 2019
 
 
-class HistoricalPopulationMap{
+export class HistoricalPopulationMap{
   
   /** HistoricalPopulationMap constructor
    * 
