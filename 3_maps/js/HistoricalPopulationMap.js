@@ -15,7 +15,7 @@ class HistoricalPopulationMap{
    * @param {number} maxYear the maximum year that can be displayed
    * @param {Object} LeafletMapArguments the arguments for the Leaflet Map object, default value given by HistoricalPopulationMap.defaultLeafletMapArguments()
    */
-  constructor(divId, communes, tilesURL, currentYear, minYear, maxYear, LeafletMapArguments){
+  constructor(divId, communes, tilesURL, currentYear, minYear, maxYear, LeafletMapArguments, APP){
     this.divId = divId
     this.communes = communes
     this.tilesURL = tilesURL
@@ -26,6 +26,7 @@ class HistoricalPopulationMap{
     this.tooltip = undefined
     this.showCommunesWithData = true
     this.showCommunesWithoutData = true
+    this.APP = APP
   }
 
   /** Initializes the map background and tooltip object */
@@ -95,11 +96,11 @@ class HistoricalPopulationMap{
   }
 
   /** Updates visible states of all the dots: size, color (interpolated/real data) and display status */
-  update(transitionMsec=APP.mapTransitionDuration){
-    // display pop as it is at APP.currentYear
+  update(transitionMsec=this.APP.mapTransitionDuration){
+    // display pop as it is at this.APP.currentYear
     this.dataCircles()
-        .classed('extrapolated', d=> !APP.hasCommuneData(d, this.currentYear))
-        .classed('intrapolated', d=> APP.hasCommuneData(d, this.currentYear))
+        .classed('extrapolated', d=> !this.APP.hasCommuneData(d, this.currentYear))
+        .classed('intrapolated', d=> this.APP.hasCommuneData(d, this.currentYear))
         .transition().duration(transitionMsec)
         .attr("r",d=>{
           d.circleSize = Math.sqrt(+d.pop_calculator(this.currentYear))/14
@@ -111,7 +112,7 @@ class HistoricalPopulationMap{
   };
 
   /** Update the year of data shown */
-  updateYear(year, transitionMsec=APP.mapTransitionDuration){
+  updateYear(year, transitionMsec=this.APP.mapTransitionDuration){
     this.currentYear = year
     this.update(transitionMsec)
   }

@@ -2,7 +2,7 @@
 
 // SPTM - Didier Dupertuis & Nicolas Vallotton - Avril 2019
 
-class HistoricalPopulationGraph{
+export class HistoricalPopulationGraph{
 
   /** HistoricalPopulationGraph constructor
    * 
@@ -109,7 +109,7 @@ class HistoricalPopulationGraph{
   }
 
   addCommune(newCommune){
-    cl("this.displayedCommunes: ", this.displayedCommunes)
+    //cl("this.displayedCommunes: ", this.displayedCommunes)
     if(!this.displayedCommunes.find(c => c.name==newCommune.name)){
       newCommune.graphColor = this.colorScale()
       this.counter = this.counter+1

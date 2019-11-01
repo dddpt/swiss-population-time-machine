@@ -1,9 +1,10 @@
+import {HistoricalPopulationGraph} from "./HistoricalPopulationGraph.js"
 "use strict";
 
 // SPTM - Didier Dupertuis & Nicolas Vallotton - Avril 2019
 
 // Creating APP object for storing all Methods
-let APP = {
+export let APP = {
   minYear: 1200,
   currentYear: 1536,
   maxYear: 1990,
@@ -69,7 +70,7 @@ APP.main = async function(){
     APP.hpm = new HistoricalPopulationMap(
       "map", APP.communes,
       'https://api.mapbox.com/styles/v1/nvallott/cjcw1ex6i0zs92smn584yavkn/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibnZhbGxvdHQiLCJhIjoiY2pjdzFkM2diMWFrMzJxcW80eTdnNDhnNCJ9.O853joFyvgOZv7y9IJAnlA',
-      1536, 1200, 1990
+      1536, 1200, 1990, false, APP
     )
     APP.hpm.init();
     APP.graph = new HistoricalPopulationGraph(
@@ -269,3 +270,44 @@ function exponentialInterpolator(dataPoints){
     return Math.exp(logResult)
   }
 }
+
+
+
+
+
+async function languageLoader(lng){
+  let translation = await fetch(APP.i18nDir+lng+".json")
+  //console.log( "translation.status: ", translation.status, ", translation: ", translation)
+  if(translation.status==200){
+    translation = await translation.json()
+    return translation
+  }else{
+    throw {
+      message: 'loading of translation "'+lng+'" failed',
+      lng: lng,
+      response: translation
+    }
+  }
+}
+
+APP.i18n = new Internationalisation(["fr","de","it","en"],languageLoader)
+//APP.i18n.useLocalStorage = false
+APP.i18n.dynamic["label-original-pop-data"] = (t,d) => t.replace("{#nbcommunes}",d)
+function onChangeLanguage(oldLng, newLng){
+  $("#lang-dropdown .lang-current").text(" "+newLng.toUpperCase()+" ")
+}
+APP.i18n.languageChangeCallbacks.push(onChangeLanguage)
+APP.i18n.observe(document)
+
+// add language choice buttons:
+for(let lng of APP.i18n.supportedLanguages){
+  let langMenu = d3.select("#lang-menu")
+  langMenu.append("a")
+      .attr("class","dropdown-item")
+      .attr("href",'javascript:void(0);')
+      .html(lng.toUpperCase())
+      .on("click.change-language", ()=> APP.i18n.changeLanguage(lng))
+  langMenu.append("br")
+}
+
+APP.main();

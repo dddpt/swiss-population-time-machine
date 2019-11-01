@@ -21,9 +21,9 @@
     <script src="3_maps/lib/promise-polyfill.min.js" charset="utf-8"></script>
     <script src="3_maps/lib/fetch.umd.js" charset="utf-8"></script>
     <script src="3_maps/lib/i18n.js" charset="utf-8"></script>
-    <script src="3_maps/assets/js/index.js" charset="utf-8"></script>
-    <script src="3_maps/assets/js/HistoricalPopulationMap.js" charset="utf-8"></script>
-    <script src="3_maps/assets/js/HistoricalPopulationGraph.js" charset="utf-8"></script>
+    <script src="3_maps/js/HistoricalPopulationMap.js" charset="utf-8"></script>
+    <script src="3_maps/js/index.js" charset="utf-8" type="module"></script>
+    <!--script src="3_maps/js/HistoricalPopulationGraph.js" charset="utf-8"></script-->
 
 </head>
 
@@ -156,43 +156,6 @@
     <!-- LAUNCHING MAIN SCRIPT -->
     <script>
 
-    async function languageLoader(lng){
-      let translation = await fetch(APP.i18nDir+lng+".json")
-      //console.log( "translation.status: ", translation.status, ", translation: ", translation)
-      if(translation.status==200){
-        translation = await translation.json()
-        return translation
-      }else{
-        throw {
-          message: 'loading of translation "'+lng+'" failed',
-          lng: lng,
-          response: translation
-        }
-      }
-    }
-
-    APP.i18n = new Internationalisation(["fr","de","it","en"],languageLoader)
-    //APP.i18n.useLocalStorage = false
-    APP.i18n.dynamic["label-original-pop-data"] = (t,d) => t.replace("{#nbcommunes}",d)
-    function onChangeLanguage(oldLng, newLng){
-      $("#lang-dropdown .lang-current").text(" "+newLng.toUpperCase()+" ")
-    }
-    APP.i18n.languageChangeCallbacks.push(onChangeLanguage)
-    APP.i18n.observe(document)
-
-    // add language choice buttons:
-    for(let lng of APP.i18n.supportedLanguages){
-      let langMenu = d3.select("#lang-menu")
-      langMenu.append("a")
-          .attr("class","dropdown-item")
-          .attr("href",'javascript:void(0);')
-          .html(lng.toUpperCase())
-          .on("click.change-language", ()=> APP.i18n.changeLanguage(lng))
-      langMenu.append("br")
-    }
-    
-    APP.main();
-    
     </script>
 </body>
 </html>
