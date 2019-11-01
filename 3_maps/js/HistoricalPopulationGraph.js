@@ -1,4 +1,5 @@
-"use strict";
+import "d3"
+
 
 // SPTM - Didier Dupertuis & Nicolas Vallotton - Avril 2019
 

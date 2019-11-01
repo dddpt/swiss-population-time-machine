@@ -18,7 +18,7 @@
  * <div class="node-name" spellcheck="false" data-i18n="node-name-you" maxlength="26" rows="2"></div>
  * Indicates that this div contains the text corresponding to "node-name-you"
  */
-class Internationalisation{
+export class Internationalisation{
 
   /**
    *

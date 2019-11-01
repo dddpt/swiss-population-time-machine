@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "babel ./js/ -d assets/js/ -watch",
-    "webpack": "webpack --config webpack.config.js"
+    "webpack": "webpack --config webpack.config.js --watch"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "babel-polyfill": "^6.26.0",
+    "d3": "^5.12.0",
     "promise-polyfill": "^8.1.0",
     "whatwg-fetch": "^3.0.0"
   }
