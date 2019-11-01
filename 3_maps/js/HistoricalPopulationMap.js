@@ -75,7 +75,7 @@ export class HistoricalPopulationMap{
               return 1.3*d.circleSize
           });
         self.tooltip.html(function(){
-            return `${d.name}, pop: ${Math.round(d.pop_calculator(self.currentYear))}`
+            return `${d.name}, pop: ${Math.round(d.calculatePopulation(self.currentYear))}`
         })
         .transition()
         .duration(50)
@@ -96,14 +96,14 @@ export class HistoricalPopulationMap{
   }
 
   /** Updates visible states of all the dots: size, color (interpolated/real data) and display status */
-  update(transitionMsec=this.APP.mapTransitionDuration){
+  update(transitionMsec){
     // display pop as it is at this.APP.currentYear
     this.dataCircles()
-        .classed('extrapolated', d=> !this.APP.hasCommuneData(d, this.currentYear))
-        .classed('intrapolated', d=> this.APP.hasCommuneData(d, this.currentYear))
+        .classed('extrapolated', d=> !d.hasPopulationData(this.currentYear))
+        .classed('intrapolated', d=> d.hasPopulationData(this.currentYear))
         .transition().duration(transitionMsec)
         .attr("r",d=>{
-          d.circleSize = Math.sqrt(+d.pop_calculator(this.currentYear))/14
+          d.circleSize = Math.sqrt(+d.calculatePopulation(this.currentYear))/14
           return d.circleSize
         })
     
@@ -112,7 +112,7 @@ export class HistoricalPopulationMap{
   };
 
   /** Update the year of data shown */
-  updateYear(year, transitionMsec=this.APP.mapTransitionDuration){
+  updateYear(year, transitionMsec){
     this.currentYear = year
     this.update(transitionMsec)
   }
@@ -123,16 +123,12 @@ export class HistoricalPopulationMap{
   /** Toggles whether do show or hide communes with data at given year */
   toggleShowCommunesWithData(){
     this.showCommunesWithData = !this.showCommunesWithData
-    d3.select("#legend-original-pop-data button")
-        .attr("data-i18n",()=> (this.showCommunesWithData? "hide":"show")+"-communes-button")
     this.update()
   }
 
   /** Toggles whether do show or hide communes without data at given year */
   toggleShowCommunesWithoutData(){
     this.showCommunesWithoutData = !this.showCommunesWithoutData
-    d3.select("#legend-extrapolated-pop-data button")
-        .attr("data-i18n",()=> (this.showCommunesWithoutData? "hide":"show")+"-communes-button")
     this.update()
   }
 

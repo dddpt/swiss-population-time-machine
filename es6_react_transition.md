@@ -82,25 +82,12 @@ Proposition:
 	- takes arguments: svg element, communes data, min&maxYear
 	- 
 
-makeCommunes split-up
---------------------------------
 
-what it does:
-- it loads communes data
-	-> and formats it correctly
-- it creates communesOverlay and all the svg circles
-- it creates the tooltipMap events handling
-- it creates the events links between map and graph
+ES6 modules
+================
 
-how should it be split up:
-index.js:
-- loading data
-	(later: formatting data in commune.js)
-- adds events on svg circles
-pop_map:
-- creates communesOverlay and all the svg circles		-> initMap
-- tooltipMap events handling							-> initMap
-- provide methods to access svg circles					method
+notes:
+- module do not share global namespace -> modules element cannot be called outside of themselves
 
 React + redux
 ================

@@ -1,6 +1,6 @@
 import {HistoricalPopulationGraph} from "./HistoricalPopulationGraph.js"
 import {HistoricalPopulationMap} from "./HistoricalPopulationMap.js"
-"use strict";
+import {Commune} from "./Commune.js"
 
 // SPTM - Didier Dupertuis & Nicolas Vallotton - Avril 2019
 
@@ -55,15 +55,11 @@ APP.main = async function(){
     APP.togglePlayPauseButtons(true)
 
     // load communes data
-    APP.communes = await d3.dsv(";",APP.communesFile, function(commune){
-      commune.hab_year = JSON.parse(commune.hab_year.replace(/'/g,'"') )
-      commune.hab_year = commune.hab_year.sort((a,b)=>a.year-b.year)
-      commune.pop_calculator = pop_calculator(commune)
-      commune.canton = commune.canton_x
-      commune.canton_x = null
-      commune.canton_y = null
-      commune.latLng = [+commune.Y,+commune.X]
-      return commune
+    APP.communes = await d3.dsv(";",APP.communesFile, function(d){
+      return new Commune(
+        d.bfsnr, d.name, d.canton_x, d.firstmention, JSON.parse(d.hab_year.replace(/'/g,'"') ),
+        d.Y, d.X, d.url, d.zipcodes, d.language, d.notes, APP.extrapolatePop
+      )
     })
 
     console.log("APP.communes 0:", APP.communes)
@@ -95,8 +91,16 @@ APP.main = async function(){
     document.getElementById("map-animation-play").addEventListener("click", ()=> APP.animationStart())
     document.getElementById("map-animation-pause").addEventListener("click", ()=> APP.animationStop())
     document.getElementById("map-animation-plus-50y").addEventListener("click", ()=> APP.animationStart(Math.min(APP.maxYear,APP.currentYear+50)))
-    document.getElementById("map-toggle-with-data").addEventListener("click", ()=> APP.hpm.toggleShowCommunesWithData())
-    document.getElementById("map-toggle-without-data").addEventListener("click", ()=> APP.hpm.toggleShowCommunesWithoutData())
+    document.getElementById("map-toggle-with-data").addEventListener("click", ()=> {
+      APP.hpm.toggleShowCommunesWithData()
+      d3.select("#legend-original-pop-data button")
+          .attr("data-i18n",()=> (APP.hpm.showCommunesWithData? "hide":"show")+"-communes-button")
+    })
+    document.getElementById("map-toggle-without-data").addEventListener("click", ()=> {
+      APP.hpm.toggleShowCommunesWithoutData()
+      d3.select("#legend-extrapolated-pop-data button")
+          .attr("data-i18n",()=> (APP.hpm.showCommunesWithoutData? "hide":"show")+"-communes-button")
+    })
 };
 
 /*****
@@ -153,23 +157,7 @@ APP.extrapolatePop = function(commune, year){
   return null
 }
 
-function pop_calculator(commune){
-  commune.pop_interpolator = exponentialInterpolator(commune.hab_year.map(hy=>[hy.year,hy.pop]))
-  commune.pop_extrapolator = year => APP.extrapolatePop(commune,year)
-  let hy1 = commune.hab_year[0]
-  return function(year){
-    if(hy1 && year<hy1.year){
-      return commune.pop_extrapolator(year)
-    }
-    else{
-      return commune.pop_interpolator(year)
-    }
-  }
-}
 
-APP.hasCommuneData = function(commune, year){
-  return commune.hab_year[0] && commune.hab_year[0].year<=year
-}
 
 
 APP.animate = function(startYear=APP.minYear, endYear=APP.maxYear, timeout=APP.animationTotalTime, interval=APP.animationIntervalTime){
@@ -242,43 +230,6 @@ APP.updateYear = function(transitionMsec=APP.mapTransitionDuration){
   APP.hpm.updateYear(APP.currentYear, transitionMsec)
 }
 
-
-/** Returns a linear interpolator from the given dataPoints
- * @param {*} dataPoints an array of length 2 arrays, each sub-array is a coordinate with sub-array[0]=x, sub-array[1]=y
- * @returns interpolate(x) a function taking a value x and returning the linear interpolation of y at x, or null if x is outside the x range of dataPoints
- */
-function interpolator(dataPoints){
-  dataPoints.sort((a,b)=>a[0]-b[0])
-  //cl("dataPoints",dataPoints)
-  return function interpolate(x){
-    if(dataPoints[0] && x==dataPoints[0][0]){
-      return dataPoints[0][1]
-    }
-    let bi = dataPoints.findIndex(b=>b[0]>=x)
-    if(bi>0 && bi<=dataPoints.length){
-      let a = dataPoints[bi-1]
-      let b = dataPoints[bi]
-      //cl("a=",a,", b=",b, ", b[1]-a[1]=", b[1]-a[1], ", b[0]-a[0]=", b[0]-a[0], ", x-a[0]=", x-a[0])
-      return a[1]+ (b[1]-a[1])/(b[0]-a[0]) * (x-a[0])
-    }
-    return null
-  }
-}
-/** Returns an exponential interpolator from the given dataPoints
- * Useful to interpolate with growth rates
- * @param {*} dataPoints an array of length 2 arrays, each sub-array is a coordinate with sub-array[0]=x, sub-array[1]=y
- * @returns interpolate(x) a function taking a value x and returning the exponential interpolation of y at x, or null if x is outside the x range of dataPoints
- */
-function exponentialInterpolator(dataPoints){
-  let linearInterpolator = interpolator(dataPoints.map(dp=>[dp[0],Math.log(dp[1])]))
-  return function(year){
-    let logResult = linearInterpolator(year)
-    if(logResult===null){
-      return null
-    }
-    return Math.exp(logResult)
-  }
-}
 
 
 
