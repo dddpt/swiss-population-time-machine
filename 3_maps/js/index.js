@@ -1,6 +1,7 @@
 import {HistoricalPopulationGraph} from "./HistoricalPopulationGraph.js"
 import {HistoricalPopulationMap} from "./HistoricalPopulationMap.js"
 import {Commune} from "./Commune.js"
+//import {Internationalisation} from "./i18n.js"
 
 // SPTM - Didier Dupertuis & Nicolas Vallotton - Avril 2019
 
