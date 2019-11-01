@@ -89,6 +89,14 @@ APP.main = async function(){
     document.getElementById("slider1").value = APP.currentYear; 
 
     APP.updateYear()
+
+    // add buttons event listeners
+    document.getElementById("map-animation-minus-50y").addEventListener("click", ()=> APP.animationStart(Math.max(APP.minYear,APP.currentYear-50)))
+    document.getElementById("map-animation-play").addEventListener("click", ()=> APP.animationStart())
+    document.getElementById("map-animation-pause").addEventListener("click", ()=> APP.animationStop())
+    document.getElementById("map-animation-plus-50y").addEventListener("click", ()=> APP.animationStart(Math.min(APP.maxYear,APP.currentYear+50)))
+    document.getElementById("map-toggle-with-data").addEventListener("click", ()=> APP.hpm.toggleShowCommunesWithData())
+    document.getElementById("map-toggle-without-data").addEventListener("click", ()=> APP.hpm.toggleShowCommunesWithoutData())
 };
 
 /*****
@@ -200,11 +208,11 @@ APP.animationStart = function(endYear = APP.maxYear){
 
 APP.togglePlayPauseButtons = function(showPlay = !APP.animationShowPlayButton){
   if(showPlay){  
-    $("#map-pause-button").hide()
-    $("#map-play-button").show()
+    $("#map-animation-pause").hide()
+    $("#map-animation-play").show()
   } else{
-    $("#map-pause-button").show()
-    $("#map-play-button").hide()
+    $("#map-animation-pause").show()
+    $("#map-animation-play").hide()
   }
   APP.animationShowPlayButton = showPlay
 }

@@ -79,21 +79,21 @@
                 
               </tr>
               <tr>
-                  <button type="button" class="btn btn-sm map-animation-btn" onclick="APP.animationStart(Math.max(APP.minYear,APP.currentYear-50))">|&lt;</button>
-                  <button type="button" class="btn btn-sm map-animation-btn" onclick="APP.animationStart()" id="map-play-button">play</button>
-                  <button type="button" class="btn btn-sm map-animation-btn" onclick="APP.animationStop()" id="map-pause-button">pause</button>
-                  <button type="button" class="btn btn-sm map-animation-btn" onclick="APP.animationStart(Math.min(APP.maxYear,APP.currentYear+50))">&gt;|</button>
+                  <button type="button" class="btn btn-sm map-animation-btn" id="map-animation-minus-50y">|&lt;</button>
+                  <button type="button" class="btn btn-sm map-animation-btn" id="map-animation-play">play</button>
+                  <button type="button" class="btn btn-sm map-animation-btn" id="map-animation-pause">pause</button>
+                  <button type="button" class="btn btn-sm map-animation-btn" id="map-animation-plus-50y">&gt;|</button>
               </tr>
               <tr width="100%">
                 <div id="legend-original-pop-data">
                   <svg style='position:relative;top:5px;' width="20px" height="20px"><circle cx="10" cy="10" r="10" fill="blue" opacity="0.6"></circle></svg>
                   <span data-i18n="label-original-pop-data"></span>
-                  <button type="button" class="btn btn-sm" data-i18n="hide-communes-button" onclick="APP.hpm.toggleShowCommunesWithData()"></button>
+                  <button type="button" class="btn btn-sm" data-i18n="hide-communes-button" id="map-toggle-with-data"></button>
                 </div>
                 <div id="legend-extrapolated-pop-data" style="margin-bottom: 10px;">
                   <svg style='position:relative;top:5px;' width="20px" height="20px"><circle cx="10" cy="10" r="10" fill="darkgreen" opacity="0.6"></circle></svg>
                   <span data-i18n="label-extrapolated-pop-data"></span>
-                  <button type="button" class="btn btn-sm" data-i18n="hide-communes-button" onclick="APP.hpm.toggleShowCommunesWithoutData()"></button>
+                  <button type="button" class="btn btn-sm" data-i18n="hide-communes-button" id="map-toggle-without-data"></button>
                 </div>
               </tr>
           </table>
